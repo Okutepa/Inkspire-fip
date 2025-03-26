@@ -19,13 +19,28 @@
         <header>
             <div class="header-container">
                 <div class="logo">
-                    <a href="index.html"><img src="images/inkspire-logo.svg" alt="Logo"></a> <!-- Adjusted path -->
+                    <a href="index.html"><img src="images/inkspire-logo.svg" alt="Logo"></a>
                 </div>
                 <div class="menu-btn" :class="{ open: menuOpen }" @click="toggleMenu">
                     <div class="menu-btn__burger"></div>
                 </div>
             </div>
         </header>
+
+        <!-- Add this hero section -->
+        <section class="hero">
+            <div class="hero-text">
+                <p>Live . Ink . Repeat</p>
+                <div class="logo-desktop">
+                    <img src="images/hero-text-desktop.svg" alt="INKSPIRE">
+                </div>
+                <!-- Mobile SVG logo -->
+                <div class="logo-mobile">
+                    <img src="images/hero-text-mobile.svg" alt="INKSPIRE">
+                </div>
+            </div>
+        </section>
+
         <nav class="nav-menu" :class="{ open: menuOpen }">
             <ul>
                 <li><a href="#home" @click="closeMenu">Home</a></li>
@@ -34,10 +49,144 @@
                 <li><a href="#contact" @click="closeMenu">Contact</a></li>
             </ul>
         </nav>
-        <!-- Rest of your content (hero, gallery, etc.) stays here -->
+        <!-- Rest of your content stays here -->
+
+        <section class="about" id="about">
+            <div class="grid-con">
+                <div class="heading col-span-full">
+                    <h2>{{ aboutSection.heading }}</h2>
+                </div>
+
+                <div class="col-span-full about-img">
+                    <div>
+                        <img :src="aboutSection.images[0].src" :alt="aboutSection.images[0].alt">
+                    </div>
+                    <div id="second-img">
+                        <img :src="aboutSection.images[1].src" :alt="aboutSection.images[1].alt">
+                    </div>
+                </div>
+
+                <div class="about-text col-span-full">
+                    <div>
+                        <h3>{{ aboutSection.tagline }}</h3>
+                        <p class="descriptive-p">{{ aboutSection.description }}</p>
+                    </div>
+
+                    <div class="about-button">
+                        <a href="about.html" class="about-us-button">
+                            <div class="text-container">ABOUT US</div>
+                            <div class="icon-container">
+                                <div class="icon">
+                                    <img src="images/logo-icon.svg" alt="INKSPIRE">
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="video-reel">
+            <div class="grid-con">
+                <div class="heading col-span-full">
+                    <h2>{{ videoSection.heading }}</h2>
+                </div>
+
+                <div class="col-span-full video-container">
+                    <div class="video-wrapper" @click="playVideo" v-if="!videoSection.isPlaying">
+                        <img :src="videoSection.posterImage" alt="Video Thumbnail" class="video-poster">
+                        <div class="play-button">
+                            <svg width="48" height="48" viewBox="0 0 48 48" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="24" cy="24" r="23" stroke="white" stroke-width="2" />
+                                <path d="M34 24L19 32.6603L19 15.3397L34 24Z" fill="white" />
+                            </svg>
+                        </div>
+                    </div>
+                    <video v-if="videoSection.isPlaying" id="team-video" controls :src="videoSection.videoSrc"
+                        @ended="resetVideo">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+            </div>
+        </section>
+
+        <section class="features-section">
+            <div class="heading-container">
+                <h2 class="heading-top special-text">WHY WE ARE THE</h2>
+            </div>
+
+            <div class="feature-cards">
+                <div v-for="(card, index) in featureCards" :key="index" class="feature-card">
+                    <div class="feature-text">
+                        <h3>{{ card.title }}</h3>
+                        <div class="feature-icon">
+                            <img src="images/logo-icon.svg" alt="Feature Icon">
+                        </div>
+                    </div>
+                    <div class="feature-img">
+                        <img :src="card.image" :alt="card.title">
+                    </div>
+                </div>
+            </div>
+
+            <div class="heading-container">
+                <h2 class="heading-bottom special-text">BEST IN LONDON</h2>
+            </div>
+        </section>
+
+        <section class="portfolio-section" id="portfolio">
+            <div class="grid-con">
+                <div class="heading col-span-full">
+                    <h2>EXPLORE OUR PORTFOLIO</h2>
+                </div>
+
+                <div class="col-span-full portfolio-carousel">
+                    <div class="carousel-wrapper">
+                        <!-- Previous Image -->
+                        <div class="carousel-image carousel-image--prev" @click="prevSlide">
+                            <img :src="portfolioImages[(currentIndex - 1 + portfolioImages.length) % portfolioImages.length].src"
+                                :alt="portfolioImages[(currentIndex - 1 + portfolioImages.length) % portfolioImages.length].alt">
+                            <div class="carousel-arrow carousel-arrow--prev">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M15 18L9 12L15 6" stroke="#d4af37" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" />
+                                </svg>
+                            </div>
+                        </div>
+
+                        <!-- Current Image -->
+                        <div class="carousel-image carousel-image--current">
+                            <img :src="portfolioImages[currentIndex].src" :alt="portfolioImages[currentIndex].alt">
+                        </div>
+
+                        <!-- Next Image -->
+                        <div class="carousel-image carousel-image--next" @click="nextSlide">
+                            <img :src="portfolioImages[(currentIndex + 1) % portfolioImages.length].src"
+                                :alt="portfolioImages[(currentIndex + 1) % portfolioImages.length].alt">
+                            <div class="carousel-arrow carousel-arrow--next">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M9 18L15 12L9 6" stroke="#d4af37" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- View All Works Button -->
+                    <div class="portfolio-cta">
+                        <a href="gallery.html" class="view-all-btn">
+                            <span>VIEW ALL WORKS</span>
+                            <div class="icon-box"></div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
     </div>
 
-    <!-- Add Vue CDN and your JS -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="js/main.js"></script>
 </body>
