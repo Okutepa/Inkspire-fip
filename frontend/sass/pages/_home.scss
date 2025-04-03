@@ -1,0 +1,567 @@
+@use '../abstracts' as *;
+
+body {
+    box-sizing: border-box;
+    background-color: $secondary-color;
+    color: #fff;
+
+    /* Hero Section */
+    .hero {
+        height: 100vh;
+        width: 100%;
+        background-image: url('../../images/hero-img.png');
+        background-size: cover;
+        background-position: center;
+        position: relative;
+        padding-top: 4.375rem; // 70px to rem
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+
+        .hero-text {
+            padding: 0 5%;
+            margin-bottom: 3.75rem; // 60px to rem
+            text-align: center;
+            color: $primary-color; // Use variable
+
+            h1 {
+                color: $primary-color;
+            }
+
+            p {
+                font-size: 1.4rem; // Mobile first
+                letter-spacing: 0.25rem; // 4px to rem
+                margin-bottom: 0.625rem; // 10px to rem
+            }
+
+            .logo-desktop {
+                display: none; // Mobile first - hide desktop logo
+            }
+
+            .logo-mobile {
+                display: block; // Mobile first - show mobile logo
+            }
+        }
+    }
+
+    .about {
+        background-color: #F7F5EB;
+        padding: 4rem 0; // 104px to rem
+        color: $secondary-color;
+
+        .heading {
+            text-align: center;
+            margin-bottom: 3.75rem; // 60px to rem
+        }
+
+        .about-img {
+            display: flex;
+            flex-direction: column; // Mobile first - stacked layout
+            gap: 2.25rem;
+            overflow: hidden;
+
+            img {
+                width: 100%;
+                object-fit: cover;
+            }
+
+            #second-img {
+                height: 400px; // Set height for second image on mobile
+            }
+        }
+
+        .about-text {
+            margin-top: 4.375rem;
+            display: flex;
+            flex-direction: column; // Mobile first - stacked layout
+            align-items: normal;
+            gap: 28px;
+
+            h3 {
+                width: 100%; // Full width on mobile
+                margin-bottom: 1.25rem;
+            }
+
+            .descriptive-p {
+                width: 100%; // Full width on mobile
+            }
+        }
+
+        .about-button {
+            .about-us-button {
+                width: 100%; // Full width button on mobile
+            }
+        }
+
+    }
+
+    .features-section {
+        position: relative;
+        padding: 3rem 0;
+        background-color: $secondary-color;
+        overflow: hidden; // For animations
+
+        .heading-container {
+            padding: 0 5%;
+            margin-bottom: 1.5rem;
+            width: 100%;
+
+            &:first-child {
+                text-align: left;
+            }
+
+            &:last-child {
+                text-align: right;
+                margin-top: 1.5rem;
+                margin-bottom: 0;
+            }
+        }
+
+        .heading-top,
+        .heading-bottom {
+            color: #ffffff;
+            font-size: 3rem;
+            /* Larger text even on mobile */
+            font-weight: bold;
+            text-transform: uppercase;
+            opacity: 0;
+            /* Initially hidden for animation */
+            display: inline-block;
+            /* Allow text to be aligned */
+            line-height: 1.1;
+            /* Tighter line height for bigger text */
+        }
+
+        .feature-cards {
+            margin-top: 1.5rem;
+            display: flex;
+            gap: 1rem;
+            padding: 0 5%;
+            overflow-x: auto; // Horizontal scroll
+            scroll-snap-type: x mandatory; // Improved scrolling
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+
+            &::-webkit-scrollbar {
+                display: none; // Hide scrollbar
+            }
+
+            padding-bottom: 1rem;
+
+            .feature-card {
+                scroll-snap-align: start;
+                flex: 0 0 auto;
+                width: 85%; // Width for mobile
+                background-color: $primary-color;
+                color: $secondary-color;
+                padding: 1.5rem;
+                border-radius: 4px;
+
+                .feature-text {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: flex-start;
+                    margin-bottom: 1.5rem;
+
+                    h3 {
+                        font-size: 1.2rem;
+                        font-weight: bold;
+                        flex: 1;
+                        padding-right: 1rem;
+                    }
+
+                    .feature-icon {
+                        flex-shrink: 0;
+
+                        img {
+                            width: 24px;
+                            height: 24px;
+                        }
+                    }
+                }
+
+                .feature-img {
+                    border-radius: 4px;
+                    overflow: hidden;
+
+                    img {
+                        width: 100%;
+                        display: block;
+                        transition: transform 0.3s ease;
+                    }
+                }
+
+                &:hover .feature-img img {
+                    transform: scale(1.05);
+                }
+            }
+        }
+    }
+
+    .artists-section {
+        background-color: #F7F5EB; // Cream background
+        padding: 3rem 0;
+
+        .heading {
+            text-align: center;
+            margin-bottom: 2.5rem;
+
+            .section-icon {
+                width: 40px;
+                height: 40px;
+                margin-bottom: 0.5rem;
+            }
+
+            h2 {
+                font-size: 2.5rem;
+                font-weight: bold;
+                text-transform: uppercase;
+                color: $secondary-color;
+            }
+        }
+
+        .artists-container {
+            display: flex;
+            flex-direction: column;
+            gap: 4rem; // Space between artists
+        }
+
+        .artist-profile {
+            display: flex;
+            flex-direction: column; // Mobile first - stacked layout
+            gap: 2rem;
+        }
+
+        .artists-info {
+            display: flex;
+            gap: 1.4rem;
+        }
+
+        .artist-image {
+            width: 310px;
+            position: relative;
+            border: 3px solid #0E76BC; // Blue border as in your design
+            margin-bottom: 1.5rem;
+
+            img {
+                width: 100%;
+                display: block;
+            }
+
+            .artist-tags {
+                position: absolute;
+                top: 1rem;
+                left: 1rem;
+                display: flex;
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .artist-tag {
+                display: inline-block;
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+                font-weight: bold;
+                text-transform: uppercase;
+
+                &.resident {
+                    background-color: white;
+                    color: $secondary-color;
+                }
+
+                &.instagram {
+                    background-color: $primary-color; // Gold
+                    color: $secondary-color;
+                }
+            }
+        }
+
+        .artist-details {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .artist-styles {
+            margin-bottom: 1.5rem;
+
+            h4 {
+                font-size: 1rem;
+                font-weight: bold;
+                margin-bottom: 0.5rem;
+                color: $secondary-color;
+            }
+
+            ul {
+                list-style: none;
+                padding: 0;
+
+                li {
+                    font-size: 0.9rem;
+                    line-height: 0.63rem;
+                    margin-bottom: 10px;
+                    color: $secondary-color;
+                }
+            }
+        }
+
+        .artist-name {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 0.25rem;
+            color: $secondary-color;
+        }
+
+        .artist-title {
+            font-size: 1rem;
+            color: $secondary-color;
+            margin-bottom: 1.5rem;
+        }
+
+        .artist-bio-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background-color: white;
+            border: 1px solid $secondary-color;
+            color: $secondary-color;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+
+            &:hover {
+                background-color: $secondary-color;
+                color: white;
+
+                svg path {
+                    stroke: white;
+                }
+            }
+        }
+
+        .artist-works {
+            width: 100%;
+            overflow: hidden;
+
+            .works-slider {
+                display: flex;
+                gap: 1rem;
+                padding: 0 5%;
+                overflow-x: auto;
+                scroll-snap-type: x mandatory;
+                scrollbar-width: none; // Hide scrollbar in Firefox
+                -ms-overflow-style: none; // Hide scrollbar in IE/Edge
+                padding-bottom: 1rem; // Space for scrollbar
+
+                &::-webkit-scrollbar {
+                    display: none; // Hide scrollbar in Chrome/Safari
+                }
+
+                .work-item {
+                    flex: 0 0 auto;
+                    width: 310px;
+                    height: 310px; // For mobile
+                    scroll-snap-align: start;
+
+                    img {
+                        width: 100%;
+                        height: 100%;
+                        display: block;
+                        object-fit: cover;
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Tablet styles
+@media (min-width: 769px) {
+    body {
+        .hero {
+            .hero-text {
+                p {
+                    font-size: 1.6rem; // Larger for tablet
+                }
+            }
+        }
+
+        .about {
+            .about-text {
+                h3 {
+                    width: 70%; // Adjusted for tablet
+                }
+
+                .descriptive-p {
+                    width: 90%; // Adjusted for tablet
+                }
+            }
+        }
+
+        .features-section {
+            padding: 3.5rem 0;
+
+            .heading-top,
+            .heading-bottom {
+                font-size: 4.5rem; // Larger for tablet
+            }
+
+            .feature-cards {
+                gap: 1.25rem;
+
+                .feature-card {
+                    width: 300px; // Fixed width for tablet
+                    padding: 1.75rem;
+
+                    .feature-text h3 {
+                        font-size: 1.25rem;
+                    }
+                }
+            }
+        }
+
+        .artists-section {
+            .artist-profile {
+                flex-direction: column; // Still column for tablet
+            }
+
+            .artist-works {
+                .works-slider {
+                    .work-item {
+                        width: 70%; // Adjusted for tablet
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Desktop styles
+@media (min-width: 1025px) {
+    body {
+        .hero {
+            .hero-text {
+                p {
+                    font-size: 1.8rem; // Largest for desktop
+                }
+
+                .logo-desktop {
+                    display: block; // Show desktop logo
+                }
+
+                .logo-mobile {
+                    display: none; // Hide mobile logo
+                }
+            }
+        }
+
+        .about {
+            .about-img {
+                flex-direction: row; // Side by side on desktop
+
+                #second-img {
+                    height: auto; // Reset height for desktop
+                }
+            }
+
+            .about-text {
+                flex-direction: row; // Side by side on desktop
+                justify-content: space-between;
+                align-items: flex-end;
+                gap: 0;
+
+                h3 {
+                    width: 50%; // Half width on desktop
+                }
+
+                .descriptive-p {
+                    width: 41.625rem; // Specific width on desktop
+                }
+            }
+
+            .about-button {
+                .about-us-button {
+                    width: auto; // Auto width on desktop
+                }
+            }
+        }
+
+        .features-section {
+            padding: 4rem 0;
+
+            .heading-container {
+                margin-bottom: 2rem;
+
+                &:last-child {
+                    margin-top: 2rem;
+                }
+            }
+
+            .heading-top,
+            .heading-bottom {
+                font-size: 6rem; // Largest for desktop
+            }
+
+            .feature-cards {
+                margin-top: 2rem;
+                gap: 1.5rem;
+
+                .feature-card {
+                    width: 350px; // Larger for desktop
+                    padding: 2rem;
+
+                    .feature-text {
+                        margin-bottom: 2rem;
+
+                        h3 {
+                            font-size: 1.35rem;
+                        }
+                    }
+                }
+            }
+        }
+
+        .artists-section {
+            .artist-profile {
+                flex-direction: row; // Side by side for desktop
+                align-items: flex-start;
+                // padding: 0 5%;
+            }
+
+            .artist-info {
+                display: flex;
+                flex-direction: column;
+                flex: 0 0 40%; // 40% width on desktop
+                padding: 0;
+            }
+
+            .artist-details {
+                flex-direction: column;
+            }
+
+            .artist-works {
+                flex: 0 0 60%; // 60% width on desktop
+                padding-left: 2rem;
+
+                .works-slider {
+                    padding: 0;
+
+                    .work-item {
+                        width: 250px; // Fixed width for desktop
+                    }
+                }
+            }
+
+            // Alternate layout for even-numbered artists
+            .artist-profile:nth-child(even) {
+                flex-direction: row-reverse;
+
+                .artist-works {
+                    padding-left: 0;
+                    padding-right: 2rem;
+                }
+            }
+        }
+    }
+}
