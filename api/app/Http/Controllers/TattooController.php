@@ -34,11 +34,18 @@ class TattooController extends Controller
             $this->validate($request, [
                 'title' => 'required|string|max:255',
                 'description' => 'nullable|string',
-                'artist_id' => 'nullable|integer',
-                'file_path' => 'nullable|string|max:500'
+                'artist_id' => 'nullable|integer|exists:artists,artist_id',
+                'file_path' => 'nullable|image|max:2048'
             ]);
-
-            $tattoo = Tattoo::create($request->all());
+    
+            $data = $request->all(); // Get all input data
+            if ($request->hasFile('file_path')) {
+                $file = $request->file('file_path');
+                $path = $file->store('tattoos', 'public'); // Store and get path
+                $data['file_path'] = $path; // Override file_path with stored path
+            }
+    
+            $tattoo = Tattoo::create($data);
             return response()->json($tattoo, 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(['error' => 'Validation failed', 'details' => $e->errors()], 422);
