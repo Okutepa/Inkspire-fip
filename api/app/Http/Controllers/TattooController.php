@@ -9,7 +9,7 @@ class TattooController extends Controller
     public function index()
     {
         try {
-            $tattoos = Tattoo::with('artist')->get();
+            $tattoos = Tattoo::with('artist')->paginate(10);
             return response()->json($tattoos);
         } catch (\Exception $e) {
             Log::error('Error fetching tattoos', ['message' => $e->getMessage()]);

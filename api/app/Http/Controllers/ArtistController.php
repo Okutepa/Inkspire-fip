@@ -11,7 +11,7 @@ class ArtistController extends Controller
     public function index()
     {
         try {
-            $artists = Artist::all(); // Add with('tattoos') if applicable
+            $artists = Artist::paginate(10);
             return response()->json($artists);
         } catch (\Exception $e) {
             Log::error('Error fetching artists', ['message' => $e->getMessage()]);
