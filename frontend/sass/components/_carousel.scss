@@ -1,0 +1,253 @@
+@use '../abstracts' as *;
+
+// Remove the `body` nesting to reduce specificity conflicts
+.portfolio-section {
+    padding: 2rem 0; // Base padding for mobile
+    background-color: #F7F5EB;
+    color: $secondary-color;
+
+    .grid-con {
+        max-width: none; // Remove any max-width constraint
+        width: 100%; // Allow the container to grow
+    }
+
+    .heading {
+        text-align: center;
+        margin-bottom: 2rem;
+
+        h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: $secondary-color;
+            text-transform: uppercase;
+        }
+    }
+
+    .portfolio-carousel {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        position: relative;
+        z-index: 10;
+
+        .carousel-wrapper {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            perspective: 1000px; // Consistent perspective across all screens
+
+            .carousel-image {
+                position: relative;
+                transition: transform 0.5s ease;
+
+                img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    border-radius: 8px;
+                }
+
+                &.carousel-image--current {
+                    width: 200px; // Base size for mobile
+                    height: 250px;
+                    z-index: 2;
+                }
+
+                &.carousel-image--prev {
+                    width: 150px;
+                    height: 250px;
+                    transform: rotateY(30deg); // Consistent angle across all screens
+                    z-index: 1;
+                    cursor: pointer;
+                }
+
+                &.carousel-image--next {
+                    width: 150px;
+                    height: 250px;
+                    transform: rotateY(-30deg); // Consistent angle
+                    z-index: 1;
+                    cursor: pointer;
+                }
+
+                .carousel-arrow {
+                    position: absolute;
+                    top: 50%;
+                    transform: translateY(-50%);
+                    cursor: pointer;
+                    background-color: $primary-color;
+                    padding: 0.5rem;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+
+                    svg {
+                        width: 16px;
+                        height: 16px;
+                    }
+
+                    &--prev {
+                        left: 0.5rem;
+                    }
+
+                    &--next {
+                        right: 0.5rem;
+                    }
+                }
+            }
+        }
+
+        .portfolio-cta {
+            margin-top: 1.5rem;
+
+            .view-all-btn {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                padding: 0.5rem 1rem;
+                background-color: #fff;
+                border: 2px solid $secondary-color;
+                border-radius: 4px;
+                text-decoration: none;
+                color: $secondary-color;
+                font-weight: 600;
+                text-transform: uppercase;
+                font-size: 0.9rem;
+
+                .icon-box {
+                    width: 20px;
+                    height: 20px;
+                    background-color: $primary-color;
+                }
+            }
+        }
+    }
+}
+
+// Tablet Media Query (min-width: 769px)
+@media (min-width: 769px) {
+    .portfolio-section {
+        padding: 3rem 0;
+
+        .heading {
+            margin-bottom: 3rem;
+
+            h2 {
+                font-size: 2rem;
+            }
+        }
+
+        .portfolio-carousel {
+            .carousel-wrapper {
+                gap: 1rem; // Larger gap for better spacing
+
+                .carousel-image--current {
+                    width: 500px !important; // Increased size for tablet with !important to ensure precedence
+                    height: 450px !important;
+                }
+
+                .carousel-image--prev,
+                .carousel-image--next {
+                    width: 350px !important; // Maintain 10:13 ratio (500:350 ≈ 10:7)
+                    height: 450px !important;
+                }
+
+                .carousel-arrow {
+                    padding: 0.75rem;
+
+                    svg {
+                        width: 24px;
+                        height: 24px;
+                    }
+
+                    &--prev {
+                        left: 1rem;
+                    }
+
+                    &--next {
+                        right: 1rem;
+                    }
+                }
+            }
+
+            .portfolio-cta {
+                margin-top: 2rem;
+
+                .view-all-btn {
+                    padding: 0.75rem 1.5rem;
+                    font-size: 1.2rem;
+
+                    .icon-box {
+                        width: 28px;
+                        height: 28px;
+                    }
+                }
+            }
+        }
+    }
+}
+
+// Desktop Media Query (min-width: 1025px)
+@media (min-width: 1025px) {
+    .portfolio-section {
+        padding: 4rem 0;
+
+        .heading {
+            margin-bottom: 3.75rem;
+
+            h2 {
+                font-size: 2.5rem;
+            }
+        }
+
+        .portfolio-carousel {
+            .carousel-wrapper {
+                gap: 1.5rem; // Even larger gap for desktop
+
+                .carousel-image--current {
+                    width: 378px !important; // Increased size for desktop with !important
+                    height: 548px !important;
+                }
+
+                .carousel-image--prev,
+                .carousel-image--next {
+                    width: 378px !important; // Increased size for desktop with !important
+                    height: 548px !important;
+                }
+
+                .carousel-arrow {
+                    padding: 1rem;
+
+                    svg {
+                        width: 32px;
+                        height: 32px;
+                    }
+
+                    &--prev {
+                        left: 1.5rem;
+                    }
+
+                    &--next {
+                        right: 1.5rem;
+                    }
+                }
+            }
+
+            .portfolio-cta {
+                margin-top: 2.5rem;
+
+                .view-all-btn {
+                    padding: 1rem 2rem;
+                    font-size: 1.4rem;
+
+                    .icon-box {
+                        width: 32px;
+                        height: 32px;
+                    }
+                }
+            }
+        }
+    }
+}
