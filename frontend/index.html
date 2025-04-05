@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;600&display=swap" rel="stylesheet">
     <link href="css/grid.css" rel="stylesheet">
     <link href="css/main.css" rel="stylesheet">
-    <script defer src="js/main.js"></script>
+    <!-- Removed duplicate script tag from here -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 </head>
 
@@ -141,7 +141,19 @@
                     <h2>EXPLORE OUR PORTFOLIO</h2>
                 </div>
 
-                <div class="col-span-full portfolio-carousel">
+                <!-- Loading state -->
+                <div v-if="loading.tattoos" class="col-span-full loading-container">
+                    <div class="loading-spinner"></div>
+                    <p>Loading portfolio...</p>
+                </div>
+
+                <!-- Error state -->
+                <div v-if="error.tattoos" class="col-span-full error-message">
+                    <p>{{ error.tattoos }}</p>
+                </div>
+
+                <div v-if="!loading.tattoos && !error.tattoos && portfolioImages.length > 0"
+                    class="col-span-full portfolio-carousel">
                     <div class="carousel-wrapper">
                         <!-- Previous Image -->
                         <div class="carousel-image carousel-image--prev" @click="prevSlide">
@@ -193,12 +205,23 @@
                     <h2>OUR ARTISTS</h2>
                 </div>
 
-                <div class="col-span-full artists-container">
-                    <!-- First Artist -->
-                    <div class="artist-profile">
+                <!-- Loading state -->
+                <div v-if="loading.artists" class="col-span-full loading-container">
+                    <div class="loading-spinner"></div>
+                    <p>Loading artists...</p>
+                </div>
+
+                <!-- Error state -->
+                <div v-if="error.artists" class="col-span-full error-message">
+                    <p>{{ error.artists }}</p>
+                </div>
+
+                <!-- Artists container -->
+                <div v-if="!loading.artists && !error.artists" class="col-span-full artists-container">
+                    <div v-for="(artist, index) in artists" :key="artist.artist_id" class="artist-profile">
                         <div class="artists-info">
                             <div class="artist-image">
-                                <img src="images/portfolio-1.jpg" alt="Oklan Ucken">
+                                <img :src="artist.photo_path || 'images/default-artist.jpg'" :alt="artist.name">
                                 <div class="artist-tags">
                                     <span class="artist-tag resident">Resident Artist</span>
                                     <span class="artist-tag instagram">Instagram</span>
@@ -207,11 +230,11 @@
 
                             <div class="artist-details">
                                 <div class="artist-info">
-                                    <h3 class="artist-name">Oklan Ucken</h3>
-                                    <p class="artist-title">Co-Founder of Monalith Studio</p>
+                                    <h3 class="artist-name">{{ artist.name }}</h3>
+                                    <p class="artist-title">Tattoo Artist</p>
 
                                     <a href="#" class="artist-bio-btn">
-                                        <span>Oklan's bio</span>
+                                        <span>{{ artist.name }}'s bio</span>
                                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
                                             xmlns="http://www.w3.org/2000/svg">
                                             <path d="M3 13L13 3M13 3H5M13 3V11" stroke="#000" stroke-width="1.5"
@@ -233,27 +256,25 @@
 
                         <div class="artist-works">
                             <div class="works-slider">
-                                <div class="work-item">
-                                    <img src="images/portfolio-2.jpg" alt="Oklan's work 1">
+                                <!-- Fixed the filter by checking if tattoos is an array first -->
+                                <div v-for="tattoo in Array.isArray(tattoos) ? tattoos.filter(t => t.artist_id === artist.artist_id) : []"
+                                    :key="tattoo.tattoo_id" class="work-item">
+                                    <img :src="tattoo.file_path" :alt="tattoo.title">
                                 </div>
-                                <div class="work-item">
-                                    <img src="images/portfolio-2.jpg" alt="Oklan's work 2">
-                                </div>
-                                <div class="work-item">
-                                    <img src="images/portfolio-2.jpg" alt="Oklan's work 3">
-                                </div>
-                                <div class="work-item">
-                                    <img src="images/portfolio-2.jpg" alt="Oklan's work 4">
+                                <!-- Show default image if no tattoos -->
+                                <div v-if="!Array.isArray(tattoos) || tattoos.filter(t => t.artist_id === artist.artist_id).length === 0"
+                                    class="work-item">
+                                    <img src="images/portfolio-2.jpg" alt="Default artwork">
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <!-- Repeat for other artists... -->
 
-                    <div class="artist-profile">
+                    <!-- Show placeholder if no artists -->
+                    <div v-if="artists.length === 0" class="artist-profile">
                         <div class="artists-info">
                             <div class="artist-image">
-                                <img src="images/portfolio-1.jpg" alt="Oklan Ucken">
+                                <img src="images/portfolio-1.jpg" alt="Default Artist">
                                 <div class="artist-tags">
                                     <span class="artist-tag resident">Resident Artist</span>
                                     <span class="artist-tag instagram">Instagram</span>
@@ -262,11 +283,11 @@
 
                             <div class="artist-details">
                                 <div class="artist-info">
-                                    <h3 class="artist-name">Oklan Ucken</h3>
-                                    <p class="artist-title">Co-Founder of Monalith Studio</p>
+                                    <h3 class="artist-name">Default Artist</h3>
+                                    <p class="artist-title">Tattoo Artist</p>
 
                                     <a href="#" class="artist-bio-btn">
-                                        <span>Oklan's bio</span>
+                                        <span>Artist's bio</span>
                                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
                                             xmlns="http://www.w3.org/2000/svg">
                                             <path d="M3 13L13 3M13 3H5M13 3V11" stroke="#000" stroke-width="1.5"
@@ -289,16 +310,7 @@
                         <div class="artist-works">
                             <div class="works-slider">
                                 <div class="work-item">
-                                    <img src="images/portfolio-2.jpg" alt="Oklan's work 1">
-                                </div>
-                                <div class="work-item">
-                                    <img src="images/portfolio-2.jpg" alt="Oklan's work 2">
-                                </div>
-                                <div class="work-item">
-                                    <img src="images/portfolio-2.jpg" alt="Oklan's work 3">
-                                </div>
-                                <div class="work-item">
-                                    <img src="images/portfolio-2.jpg" alt="Oklan's work 4">
+                                    <img src="images/portfolio-2.jpg" alt="Default artwork">
                                 </div>
                             </div>
                         </div>
@@ -308,6 +320,7 @@
         </section>
     </div>
 
+    <!-- Keep these scripts at the bottom, before the closing body tag -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="js/main.js"></script>
 </body>
