@@ -30,22 +30,26 @@ $app->singleton(
     App\Console\Kernel::class
 );
 
+// Load auth configuration
+$app->configure('auth');
+
 // Register middleware
 $app->middleware([
     App\Http\Middleware\CorsMiddleware::class
 ]);
 
-// Optional: Register route middleware
+// Register route middleware
 $app->routeMiddleware([
     'cors' => App\Http\Middleware\CorsMiddleware::class,
+    'auth' => App\Http\Middleware\Authenticate::class,
 ]);
 
 // Load configuration files
 $app->configure('app');
 $app->configure('database');
 
-// Register service providers (uncomment if needed later)
-// $app->register(App\Providers\AppServiceProvider::class);
+// Register JWT service provider
+$app->register(Tymon\JWTAuth\Providers\LumenServiceProvider::class);
 
 // Load routes
 $app->router->group([
