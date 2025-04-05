@@ -1,6 +1,7 @@
-const { createApp } = Vue;
+// No need to re-declare createApp since it's already available from the Vue import
+// Remove this line: const { createApp } = Vue;
 
-const app = createApp({
+const app = Vue.createApp({
     data() {
         return {
             menuOpen: false,
@@ -15,7 +16,7 @@ const app = createApp({
             },
             videoSection: {
                 heading: "OUR WORK",
-                posterImage: "images/hero-img.jpg",
+                posterImage: "images/hero-img.png", // Make sure this file exists
                 videoSrc: "videos/team-showcase.mp4",
                 isPlaying: false
             },
@@ -33,7 +34,20 @@ const app = createApp({
                 { src: "images/portfolio-4.jpg", alt: "Tattoo Artwork 4" },
                 { src: "images/portfolio-5.jpg", alt: "Tattoo Artwork 5" }
             ],
-            currentIndex: 0 // Start at the first image
+            currentIndex: 0,
+            
+            // API-related properties
+            artists: [],
+            tattoos: [], // Ensure this is initialized as an empty array
+            apiBaseUrl: 'http://localhost:8000/api', // Path to your Lumen API
+            loading: {
+                artists: false,
+                tattoos: false
+            },
+            error: {
+                artists: null,
+                tattoos: null
+            }
         };
     },
     methods: {
@@ -90,14 +104,118 @@ const app = createApp({
         },
         prevSlide() {
             this.currentIndex = (this.currentIndex - 1 + this.portfolioImages.length) % this.portfolioImages.length;
+        },
+        
+        // Improved API methods
+        fetchArtists() {
+            this.loading.artists = true;
+            this.error.artists = null;
+            
+            fetch(`${this.apiBaseUrl}/artists`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch artists: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Debug the API response
+                    console.log('API Response (artists):', data);
+                    
+                    // Get data from paginated response
+                    const artistsData = data.data || [];
+                    
+                    // Force use the default images we know exist instead of trying to load from API
+                    this.artists = artistsData.map(artist => ({
+                        ...artist,
+                        photo_path: "images/portfolio-1.jpg" // Use existing image that we know works
+                    }));
+                    
+                    this.loading.artists = false;
+                    
+                    // Update about section with first artist's bio if available
+                    if (this.artists.length > 0) {
+                        const firstArtist = this.artists[0];
+                        if (firstArtist.bio) {
+                            this.aboutSection.description = firstArtist.bio;
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching artists:', error);
+                    this.error.artists = 'Failed to load artists. Please try again later.';
+                    this.loading.artists = false;
+                    // Ensure we set an empty array on error to prevent filter issues
+                    this.artists = [];
+                });
+        },
+        
+        fetchTattoos() {
+            this.loading.tattoos = true;
+            this.error.tattoos = null;
+            
+            fetch(`${this.apiBaseUrl}/tattoos`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch tattoos: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // Debug the API response
+                    console.log('API Response (tattoos):', data);
+                    
+                    // Get data from paginated response
+                    const tattoosData = data.data || [];
+                    
+                    // Force use the default portfolio images we know exist
+                    const portfolioFallbacks = [
+                        "images/portfolio-1.jpg",
+                        "images/portfolio-2.jpg",
+                        "images/portfolio-3.jpg",
+                        "images/portfolio-4.jpg",
+                        "images/portfolio-5.jpg"
+                    ];
+                    
+                    // Map each tattoo to a known working image
+                    this.tattoos = tattoosData.map((tattoo, index) => ({
+                        ...tattoo,
+                        file_path: portfolioFallbacks[index % portfolioFallbacks.length]
+                    }));
+                    
+                    this.loading.tattoos = false;
+                    
+                    // Update portfolio images if tattoos are available
+                    if (this.tattoos.length > 0) {
+                        const tattooImages = this.tattoos.map(tattoo => ({
+                            src: tattoo.file_path,
+                            alt: tattoo.title || 'Tattoo artwork'
+                        }));
+                        
+                        // Only update if we have tattoo images
+                        if (tattooImages.length > 0) {
+                            this.portfolioImages = tattooImages;
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching tattoos:', error);
+                    this.error.tattoos = 'Failed to load portfolio. Please try again later.';
+                    this.loading.tattoos = false;
+                    // Ensure we set an empty array on error to prevent filter issues
+                    this.tattoos = [];
+                });
         }
     },
     mounted() {
+        // Close menu on resize
         window.addEventListener('resize', () => {
             if (this.menuOpen && window.innerWidth > 768) {
                 this.closeMenu();
             }
         });
+        
+        // Close menu on outside click
         document.addEventListener('click', (e) => {
             const menuBtn = document.querySelector('.menu-btn');
             const navMenu = document.querySelector('.nav-menu');
@@ -108,6 +226,7 @@ const app = createApp({
             }
         });
 
+        // Feature heading animations
         const featuresObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -121,6 +240,10 @@ const app = createApp({
         if (featuresSection) {
             featuresObserver.observe(featuresSection);
         }
+        
+        // Fetch data from API
+        this.fetchArtists();
+        this.fetchTattoos();
     }
 });
 

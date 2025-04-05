@@ -8,8 +8,9 @@ class CorsMiddleware
 {
     public function handle($request, Closure $next)
     {
+        // Update these to match your development environment
         $headers = [
-            'Access-Control-Allow-Origin'      => '*',
+            'Access-Control-Allow-Origin'      => '*', // Allow all origins for testing, or use http://localhost:8888
             'Access-Control-Allow-Methods'     => 'POST, GET, OPTIONS, PUT, DELETE',
             'Access-Control-Allow-Credentials' => 'true',
             'Access-Control-Max-Age'           => '86400',
