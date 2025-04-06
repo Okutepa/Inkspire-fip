@@ -10,9 +10,9 @@ use Tymon\JWTAuth\Contracts\JWTSubject;
 
 class User extends Model implements AuthenticatableContract, AuthorizableContract, JWTSubject
 {
-    use Authenticatable, Authorizable;
+    use Authenticatable, Authorizable, HasFactory;
     
-    protected $fillable = ['email', 'password'];
+    protected $fillable = ['name', 'email', 'password', 'role'];
     protected $hidden = ['password'];
     
     public function getJWTIdentifier()
