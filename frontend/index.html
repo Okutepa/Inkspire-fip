@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Inkspire</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;600&display=swap" rel="stylesheet">
+    <link href="css/grid.css" rel="stylesheet">
+    <link href="css/main.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+</head>
+
+<body>
+    <div id="app">
+        <header>
+            <div class="header-container">
+                <div class="logo">
+                    <a href="index.html"><img src="images/inkspire-logo.svg" alt="Logo"></a>
+                </div>
+                <div class="menu-btn" :class="{ open: menuOpen }" @click="toggleMenu">
+                    <div class="menu-btn__burger"></div>
+                </div>
+            </div>
+        </header>
+
+        <section class="hero">
+            <div class="hero-text">
+                <p>Live . Ink . Repeat</p>
+                <div class="logo-desktop">
+                    <img src="images/hero-text-desktop.svg" alt="INKSPIRE">
+                </div>
+                <div class="logo-mobile">
+                    <img src="images/hero-text-mobile.svg" alt="INKSPIRE">
+                </div>
+            </div>
+        </section>
+
+        <nav class="nav-menu" :class="{ open: menuOpen }">
+            <ul>
+                <li><a href="#home" @click="closeMenu">Home</a></li>
+                <li><a href="#about" @click="closeMenu">About</a></li>
+                <li><a href="#services" @click="closeMenu">Services</a></li>
+                <li><a href="#contact" @click="closeMenu">Contact</a></li>
+            </ul>
+        </nav>
+
+        <section class="about" id="about">
+            <div class="grid-con">
+                <div class="heading col-span-full">
+                    <h2>{{ aboutSection.heading }}</h2>
+                </div>
+                <div class="col-span-full about-img">
+                    <div>
+                        <img :src="aboutSection.images[0].src" :alt="aboutSection.images[0].alt">
+                    </div>
+                    <div id="second-img">
+                        <img :src="aboutSection.images[1].src" :alt="aboutSection.images[1].alt">
+                    </div>
+                </div>
+                <div class="about-text col-span-full">
+                    <div>
+                        <h3>{{ aboutSection.tagline }}</h3>
+                        <p class="descriptive-p">{{ aboutSection.description }}</p>
+                    </div>
+                    <div class="about-button">
+                        <a href="about.html" class="about-us-button">
+                            <div class="text-container">ABOUT US</div>
+                            <div class="icon-container">
+                                <div class="icon">
+                                    <img src="images/logo-icon.svg" alt="INKSPIRE">
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="video-reel">
+            <div class="grid-con">
+                <div class="heading col-span-full">
+                    <h2>{{ videoSection.heading }}</h2>
+                </div>
+                <div class="col-span-full video-container">
+                    <div class="video-wrapper" @click="playVideo" v-if="!videoSection.isPlaying">
+                        <img :src="videoSection.posterImage" alt="Video Thumbnail" class="video-poster">
+                        <div class="play-button">
+                            <svg width="48" height="48" viewBox="0 0 48 48" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="24" cy="24" r="23" stroke="white" stroke-width="2" />
+                                <path d="M34 24L19 32.6603L19 15.3397L34 24Z" fill="white" />
+                            </svg>
+                        </div>
+                    </div>
+                    <video v-if="videoSection.isPlaying" id="team-video" controls :src="videoSection.videoSrc"
+                        @ended="resetVideo">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+            </div>
+        </section>
+
+        <section class="features-section">
+            <div class="heading-container">
+                <h2 class="heading-top special-text">WHY WE ARE THE</h2>
+            </div>
+            <div class="feature-cards">
+                <div v-for="(card, index) in featureCards" :key="index" class="feature-card">
+                    <div class="feature-text">
+                        <h3>{{ card.title }}</h3>
+                        <div class="feature-icon">
+                            <img src="images/logo-icon.svg" alt="Feature Icon">
+                        </div>
+                    </div>
+                    <div class="feature-img">
+                        <img :src="card.image" :alt="card.title">
+                    </div>
+                </div>
+            </div>
+            <div class="heading-container">
+                <h2 class="heading-bottom special-text">BEST IN LONDON</h2>
+            </div>
+        </section>
+
+        <section class="portfolio-section" id="portfolio">
+            <div class="grid-con">
+                <div class="heading col-span-full">
+                    <h2>EXPLORE OUR PORTFOLIO</h2>
+                </div>
+                <div v-if="loading.tattoos" class="col-span-full loading-container">
+                    <div class="loading-spinner"></div>
+                    <p>Loading portfolio...</p>
+                </div>
+                <div v-if="error.tattoos" class="col-span-full error-message">
+                    <p>{{ error.tattoos }}</p>
+                </div>
+                <div v-if="!loading.tattoos && !error.tattoos && portfolioImages.length > 0"
+                    class="col-span-full portfolio-carousel">
+                    <div class="carousel-wrapper">
+                        <div class="carousel-image carousel-image--prev" @click="prevSlide">
+                            <img :src="portfolioImages[(currentIndex - 1 + portfolioImages.length) % portfolioImages.length].src"
+                                :alt="portfolioImages[(currentIndex - 1 + portfolioImages.length) % portfolioImages.length].alt">
+                            <div class="carousel-arrow carousel-arrow--prev">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M15 18L9 12L15 6" stroke="#d4af37" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" />
+                                </svg>
+                            </div>
+                        </div>
+                        <div class="carousel-image carousel-image--current">
+                            <img :src="portfolioImages[currentIndex].src" :alt="portfolioImages[currentIndex].alt">
+                        </div>
+                        <div class="carousel-image carousel-image--next" @click="nextSlide">
+                            <img :src="portfolioImages[(currentIndex + 1) % portfolioImages.length].src"
+                                :alt="portfolioImages[(currentIndex + 1) % portfolioImages.length].alt">
+                            <div class="carousel-arrow carousel-arrow--next">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                    xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M9 18L15 12L9 6" stroke="#d4af37" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="portfolio-cta">
+                        <a href="gallery.html" class="view-all-btn">
+                            <span>VIEW ALL WORKS</span>
+                            <div class="icon-box"></div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="artists-section" id="artists">
+            <div class="grid-con">
+                <div class="heading col-span-full">
+                    <img src="images/logo-icon.svg" alt="INKSPIRE" class="section-icon">
+                    <h2>OUR ARTISTS</h2>
+                </div>
+                <div v-if="loading.artists" class="col-span-full loading-container">
+                    <div class="loading-spinner"></div>
+                    <p>Loading artists...</p>
+                </div>
+                <div v-if="error.artists" class="col-span-full error-message">
+                    <p>{{ error.artists }}</p>
+                </div>
+                <div v-if="!loading.artists && !error.artists" class="col-span-full artists-container">
+                    <div v-for="(artist, index) in artists" :key="artist.artist_id" class="artist-profile">
+                        <div class="artists-info">
+                            <div class="artist-image">
+                                <img :src="artist.photo_path || 'images/default-artist.jpg'" :alt="artist.name">
+                                <div class="artist-tags">
+                                    <span class="artist-tag resident">Resident Artist</span>
+                                    <span class="artist-tag instagram">Instagram</span>
+                                </div>
+                            </div>
+                            <div class="artist-details">
+                                <div class="artist-info">
+                                    <h3 class="artist-name">{{ artist.name }}</h3>
+                                    <p class="artist-title">Tattoo Artist</p>
+                                    <a :href="'artist-bio.html?id=' + artist.artist_id" class="artist-bio-btn">
+                                        <span>{{ artist.name }}'s bio</span>
+                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
+                                            xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M3 13L13 3M13 3H5M13 3V11" stroke="#000" stroke-width="1.5"
+                                                stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                    </a>
+                                </div>
+                                <div class="artist-styles">
+                                    <h4>STYLES</h4>
+                                    <ul>
+                                        <li>Minimal</li>
+                                        <li>Fine Line</li>
+                                        <li>Geometric</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="artist-works">
+                            <div class="works-slider">
+                                <div v-for="tattoo in Array.isArray(tattoos) ? tattoos.filter(t => t.artist_id === artist.artist_id) : []"
+                                    :key="tattoo.tattoo_id" class="work-item">
+                                    <img :src="tattoo.file_path" :alt="tattoo.title">
+                                </div>
+                                <div v-if="!Array.isArray(tattoos) || tattoos.filter(t => t.artist_id === artist.artist_id).length === 0"
+                                    class="work-item">
+                                    <img src="images/portfolio-2.jpg" alt="Default artwork">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div v-if="artists.length === 0" class="artist-profile">
+                        <div class="artists-info">
+                            <div class="artist-image">
+                                <img src="images/portfolio-1.jpg" alt="Default Artist">
+                                <div class="artist-tags">
+                                    <span class="artist-tag resident">Resident Artist</span>
+                                    <span class="artist-tag instagram">Instagram</span>
+                                </div>
+                            </div>
+                            <div class="artist-details">
+                                <div class="artist-info">
+                                    <h3 class="artist-name">Default Artist</h3>
+                                    <p class="artist-title">Tattoo Artist</p>
+                                    <a href="#" class="artist-bio-btn">
+                                        <span>Artist's bio</span>
+                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
+                                            xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M3 13L13 3M13 3H5M13 3V11" stroke="#000" stroke-width="1.5"
+                                                stroke-linecap="round" stroke-linejoin="round" />
+                                        </svg>
+                                    </a>
+                                </div>
+                                <div class="artist-styles">
+                                    <h4>STYLES</h4>
+                                    <ul>
+                                        <li>流动Minimal</li>
+                                        <li>Fine Line</li>
+                                        <li>Geometric</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="artist-works">
+                            <div class="works-slider">
+                                <div class="work-item">
+                                    <img src="images/portfolio-2.jpg" alt="Default artwork">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script type="module" src="js/main.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,94 @@
+@use '../abstracts' as *;
+
+/* Mobile-first: Styles for small screens (up to 768px) */
+.video-reel {
+    background-color: $primary-color;
+    /* Likely black for Inkspire’s dark theme */
+    padding: 3rem 0;
+    /* Slightly less padding on mobile for a tighter look */
+    color: $secondary-color;
+    /* Likely white or yellow for contrast */
+}
+
+.video-reel .heading {
+    text-align: center;
+    margin-bottom: 2rem;
+    /* Smaller margin on mobile */
+}
+
+.video-reel h2 {
+    font-weight: bold;
+    font-size: 2rem;
+    /* Matches your mobile h2 size for consistency */
+    text-transform: uppercase;
+}
+
+.video-container {
+    display: flex;
+    justify-content: center;
+    padding: 0 1rem;
+}
+
+.video-wrapper {
+    position: relative;
+    min-height: 200px;
+    /* Smaller height for mobile */
+    width: 100%;
+    cursor: pointer;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.video-poster {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+}
+
+.play-button {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    transition: transform 0.3s ease;
+}
+
+.video-wrapper:hover .play-button {
+    transform: translate(-50%, -50%) scale(1.1);
+}
+
+#team-video {
+    width: 100%;
+    max-width: 600px;
+    /* Smaller max-width for mobile */
+    height: auto;
+}
+
+/* Desktop: Adjust for larger screens (769px and up) */
+@media (min-width: 769px) {
+    .video-reel {
+        padding: 4rem 0;
+        /* More padding on desktop for breathing room */
+    }
+
+    .video-reel .heading {
+        margin-bottom: 3rem;
+        /* Larger margin on desktop */
+    }
+
+    .video-reel h2 {
+        font-size: 2.5rem;
+        /* Matches your desktop h2 size for consistency */
+    }
+
+    .video-wrapper {
+        max-height: 600px;
+        /* Larger height for desktop */
+    }
+
+    #team-video {
+        max-width: 800px;
+        /* Larger max-width for desktop */
+    }
+}

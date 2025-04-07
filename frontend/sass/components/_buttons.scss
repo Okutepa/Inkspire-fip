@@ -1,0 +1,95 @@
+@use '../abstracts' as *;
+
+/* Mobile-first: Styles for small screens (up to 768px) */
+.about-button {
+
+    width: 100%;
+    /* Full width for mobile */
+
+
+    .about-us-button {
+        display: flex;
+        cursor: pointer;
+        background: none;
+        border: none;
+        padding: 0;
+        transition: transform 0.3s ease;
+        width: 100%;
+        text-decoration: none;
+
+        &:hover {
+            transform: translateY(-2px);
+            /* Subtle lift effect */
+        }
+    }
+
+    .text-container {
+        background-color: #F7F5EB;
+        /* Light beige background */
+        border: 2px solid $secondary-color;
+        /* Dark border, likely black */
+        padding: 20px 24px;
+        /* Tighter padding for mobile */
+        font-size: 14px;
+        /* Smaller font for mobile */
+        font-weight: bold;
+        text-transform: uppercase;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: $secondary-color;
+        /* Dark text color, likely black */
+        flex: 0 0 70%;
+        /* Takes up 70% of the space */
+    }
+
+    .icon-container {
+        flex: 0 0 30%;
+        /* Takes up 30% of the space */
+        height: 100%;
+        padding: 15px 0;
+        /* Tighter padding for mobile */
+        background-color: #F7F5EB;
+        border: 2px solid $secondary-color;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .icon {
+        transition: all 0.5s ease;
+    }
+
+    .about-us-button:hover .icon {
+        animation: spin 1.5s infinite ease-in-out;
+    }
+
+    @keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+}
+
+/* Desktop: Adjust for larger screens (769px and up) */
+@media (min-width: 769px) {
+    .about-button {
+        /* Fixed width for desktop, as in your original code */
+
+        .text-container {
+            padding: 32px 40px;
+            /* More spacious padding for desktop */
+            font-size: 16px;
+            /* Larger font for desktop */
+        }
+
+        .icon-container {
+            padding: 22px 0;
+            /* More spacious padding for desktop */
+        }
+    }
+}

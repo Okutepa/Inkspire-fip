@@ -1,0 +1,189 @@
+body {
+    font-family: "Montserrat", sans-serif;
+
+    /* Mobile-first: Styles for small screens (up to 768px) */
+    h1 {
+        font-size: 4.75rem;
+        /* Matches "INKSPIRE" on mobile */
+        font-weight: 600;
+        line-height: 95%;
+        letter-spacing: -2.5px;
+        /* Slightly tighter for mobile */
+    }
+
+    h2 {
+        font-size: 2.5rem;
+        /* Matches "ABOUT THE TEAM" on mobile */
+        font-style: italic;
+        font-weight: 800;
+        line-height: 100%;
+    }
+
+    h3 {
+        font-size: 1.5rem;
+        /* Matches "Oikan Ucken" on mobile */
+        font-style: italic;
+        font-weight: 800;
+        line-height: 100%;
+    }
+
+    h4 {
+        font-size: 1.25rem;
+        /* Matches "STYLES" on mobile */
+        font-style: normal;
+        font-weight: 500;
+        line-height: 100%;
+    }
+
+    h5 {
+        font-size: 0.875rem;
+        /* Matches "Team of skilled artists" on mobile */
+        font-weight: 600;
+    }
+
+    p {
+        font-size: 1.25rem;
+        /* Matches regular paragraphs on mobile */
+        font-style: normal;
+        font-weight: 400;
+        line-height: normal;
+        letter-spacing: 0.0375rem;
+        /* Slightly less spacing for mobile */
+    }
+
+    .p-bold {
+        font-size: 1.25rem;
+        /* Same size, but bolder */
+        font-style: normal;
+        font-weight: 700;
+        line-height: normal;
+        letter-spacing: 0.04375rem;
+    }
+
+    .artist-p {
+        font-size: 0.625rem;
+        /* Matches "Founder of Inkspired Studio" on mobile */
+        font-style: normal;
+        font-weight: 300;
+        line-height: 100%;
+    }
+
+    .descriptive-p {
+        font-size: 1rem;
+        /* Matches "Inkspired isn’t just a brand…" on mobile */
+        font-style: normal;
+        font-weight: 300;
+        line-height: normal;
+        letter-spacing: 0.5px;
+    }
+
+    .special-text {
+        font-size: 4.75rem;
+        /* Matches "BEST IN LONDON" on mobile */
+        font-style: italic;
+        font-weight: 700;
+        line-height: 100%;
+    }
+
+    .sticker-text {
+        font-size: 1.5rem;
+        /* Matches "LIVE • INK • REPEAT" on mobile */
+        font-style: normal;
+        font-weight: 700;
+        line-height: normal;
+    }
+}
+
+/* Desktop: Adjust for larger screens (769px and up) */
+@media (min-width: 769px) {
+    body {
+        h1 {
+            font-size: 7.75rem;
+            /* Matches "INKSPIRE" on desktop */
+            font-weight: 400;
+            /* Slightly lighter for elegance */
+            line-height: 95%;
+            letter-spacing: -1.44px;
+        }
+
+        h2 {
+            font-size: 4.25rem;
+            /* Matches "ABOUT THE TEAM" on desktop */
+            font-style: italic;
+            font-weight: 800;
+            line-height: 100%;
+        }
+
+        h3 {
+            font-size: 1.75rem;
+            /* Matches "Oikan Ucken" on desktop */
+            font-style: italic;
+            font-weight: 800;
+            line-height: 100%;
+        }
+
+        h4 {
+            font-size: 1.375rem;
+            /* Matches "STYLES" on desktop */
+            font-style: normal;
+            font-weight: 500;
+            line-height: 100%;
+        }
+
+        h5 {
+            font-size: 1rem;
+            /* Matches "Team of skilled artists" on desktop */
+            font-weight: 600;
+        }
+
+        p {
+            font-size: 1.5rem;
+            /* Matches regular paragraphs on desktop */
+            font-style: normal;
+            font-weight: 400;
+            line-height: normal;
+            letter-spacing: 0.045rem;
+        }
+
+        .p-bold {
+            font-size: 1.5rem;
+            font-style: normal;
+            font-weight: 700;
+            line-height: normal;
+            letter-spacing: 0.0525rem;
+        }
+
+        .artist-p {
+            font-size: 0.75rem;
+            /* Matches "Founder of Inkspired Studio" on desktop */
+            font-style: normal;
+            font-weight: 300;
+            line-height: 100%;
+        }
+
+        .descriptive-p {
+            font-size: 1.125rem;
+            /* 18px, matches "Inkspired isn’t just a brand…" on desktop */
+            font-style: normal;
+            font-weight: 300;
+            line-height: normal;
+            letter-spacing: 0.6px;
+        }
+
+        .special-text {
+            font-size: 7.75rem;
+            /* Matches "BEST IN LONDON" on desktop */
+            font-style: italic;
+            font-weight: 700;
+            line-height: 100%;
+        }
+
+        .sticker-text {
+            font-size: 2.5rem;
+            /* Matches "LIVE • INK • REPEAT" on desktop */
+            font-style: normal;
+            font-weight: 700;
+            line-height: normal;
+        }
+    }
+}

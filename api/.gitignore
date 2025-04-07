@@ -1,0 +1,15 @@
+# Environment files
+.env
+
+# Vendor dependencies
+vendor/
+
+# Logs and storage
+storage/logs/*
+storage/framework/*
+storage/app/public/*
+!storage/app/public/.gitkeep
+
+# IDE files
+.idea/
+*.swp
