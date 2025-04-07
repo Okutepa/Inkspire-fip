@@ -10,12 +10,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;600&display=swap" rel="stylesheet">
     <link href="css/grid.css" rel="stylesheet">
     <link href="css/main.css" rel="stylesheet">
-    <!-- Removed duplicate script tag from here -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
 </head>
 
 <body>
-    <div id="app"> <!-- Vue will control this -->
+    <div id="app">
         <header>
             <div class="header-container">
                 <div class="logo">
@@ -27,14 +26,12 @@
             </div>
         </header>
 
-        <!-- Add this hero section -->
         <section class="hero">
             <div class="hero-text">
                 <p>Live . Ink . Repeat</p>
                 <div class="logo-desktop">
                     <img src="images/hero-text-desktop.svg" alt="INKSPIRE">
                 </div>
-                <!-- Mobile SVG logo -->
                 <div class="logo-mobile">
                     <img src="images/hero-text-mobile.svg" alt="INKSPIRE">
                 </div>
@@ -49,14 +46,12 @@
                 <li><a href="#contact" @click="closeMenu">Contact</a></li>
             </ul>
         </nav>
-        <!-- Rest of your content stays here -->
 
         <section class="about" id="about">
             <div class="grid-con">
                 <div class="heading col-span-full">
                     <h2>{{ aboutSection.heading }}</h2>
                 </div>
-
                 <div class="col-span-full about-img">
                     <div>
                         <img :src="aboutSection.images[0].src" :alt="aboutSection.images[0].alt">
@@ -65,13 +60,11 @@
                         <img :src="aboutSection.images[1].src" :alt="aboutSection.images[1].alt">
                     </div>
                 </div>
-
                 <div class="about-text col-span-full">
                     <div>
                         <h3>{{ aboutSection.tagline }}</h3>
                         <p class="descriptive-p">{{ aboutSection.description }}</p>
                     </div>
-
                     <div class="about-button">
                         <a href="about.html" class="about-us-button">
                             <div class="text-container">ABOUT US</div>
@@ -91,7 +84,6 @@
                 <div class="heading col-span-full">
                     <h2>{{ videoSection.heading }}</h2>
                 </div>
-
                 <div class="col-span-full video-container">
                     <div class="video-wrapper" @click="playVideo" v-if="!videoSection.isPlaying">
                         <img :src="videoSection.posterImage" alt="Video Thumbnail" class="video-poster">
@@ -115,7 +107,6 @@
             <div class="heading-container">
                 <h2 class="heading-top special-text">WHY WE ARE THE</h2>
             </div>
-
             <div class="feature-cards">
                 <div v-for="(card, index) in featureCards" :key="index" class="feature-card">
                     <div class="feature-text">
@@ -129,7 +120,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="heading-container">
                 <h2 class="heading-bottom special-text">BEST IN LONDON</h2>
             </div>
@@ -140,22 +130,16 @@
                 <div class="heading col-span-full">
                     <h2>EXPLORE OUR PORTFOLIO</h2>
                 </div>
-
-                <!-- Loading state -->
                 <div v-if="loading.tattoos" class="col-span-full loading-container">
                     <div class="loading-spinner"></div>
                     <p>Loading portfolio...</p>
                 </div>
-
-                <!-- Error state -->
                 <div v-if="error.tattoos" class="col-span-full error-message">
                     <p>{{ error.tattoos }}</p>
                 </div>
-
                 <div v-if="!loading.tattoos && !error.tattoos && portfolioImages.length > 0"
                     class="col-span-full portfolio-carousel">
                     <div class="carousel-wrapper">
-                        <!-- Previous Image -->
                         <div class="carousel-image carousel-image--prev" @click="prevSlide">
                             <img :src="portfolioImages[(currentIndex - 1 + portfolioImages.length) % portfolioImages.length].src"
                                 :alt="portfolioImages[(currentIndex - 1 + portfolioImages.length) % portfolioImages.length].alt">
@@ -167,13 +151,9 @@
                                 </svg>
                             </div>
                         </div>
-
-                        <!-- Current Image -->
                         <div class="carousel-image carousel-image--current">
                             <img :src="portfolioImages[currentIndex].src" :alt="portfolioImages[currentIndex].alt">
                         </div>
-
-                        <!-- Next Image -->
                         <div class="carousel-image carousel-image--next" @click="nextSlide">
                             <img :src="portfolioImages[(currentIndex + 1) % portfolioImages.length].src"
                                 :alt="portfolioImages[(currentIndex + 1) % portfolioImages.length].alt">
@@ -186,8 +166,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- View All Works Button -->
                     <div class="portfolio-cta">
                         <a href="gallery.html" class="view-all-btn">
                             <span>VIEW ALL WORKS</span>
@@ -204,19 +182,13 @@
                     <img src="images/logo-icon.svg" alt="INKSPIRE" class="section-icon">
                     <h2>OUR ARTISTS</h2>
                 </div>
-
-                <!-- Loading state -->
                 <div v-if="loading.artists" class="col-span-full loading-container">
                     <div class="loading-spinner"></div>
                     <p>Loading artists...</p>
                 </div>
-
-                <!-- Error state -->
                 <div v-if="error.artists" class="col-span-full error-message">
                     <p>{{ error.artists }}</p>
                 </div>
-
-                <!-- Artists container -->
                 <div v-if="!loading.artists && !error.artists" class="col-span-full artists-container">
                     <div v-for="(artist, index) in artists" :key="artist.artist_id" class="artist-profile">
                         <div class="artists-info">
@@ -227,13 +199,11 @@
                                     <span class="artist-tag instagram">Instagram</span>
                                 </div>
                             </div>
-
                             <div class="artist-details">
                                 <div class="artist-info">
                                     <h3 class="artist-name">{{ artist.name }}</h3>
                                     <p class="artist-title">Tattoo Artist</p>
-
-                                    <a href="#" class="artist-bio-btn">
+                                    <a :href="'artist-bio.html?id=' + artist.artist_id" class="artist-bio-btn">
                                         <span>{{ artist.name }}'s bio</span>
                                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
                                             xmlns="http://www.w3.org/2000/svg">
@@ -242,7 +212,6 @@
                                         </svg>
                                     </a>
                                 </div>
-
                                 <div class="artist-styles">
                                     <h4>STYLES</h4>
                                     <ul>
@@ -253,15 +222,12 @@
                                 </div>
                             </div>
                         </div>
-
                         <div class="artist-works">
                             <div class="works-slider">
-                                <!-- Fixed the filter by checking if tattoos is an array first -->
                                 <div v-for="tattoo in Array.isArray(tattoos) ? tattoos.filter(t => t.artist_id === artist.artist_id) : []"
                                     :key="tattoo.tattoo_id" class="work-item">
                                     <img :src="tattoo.file_path" :alt="tattoo.title">
                                 </div>
-                                <!-- Show default image if no tattoos -->
                                 <div v-if="!Array.isArray(tattoos) || tattoos.filter(t => t.artist_id === artist.artist_id).length === 0"
                                     class="work-item">
                                     <img src="images/portfolio-2.jpg" alt="Default artwork">
@@ -269,8 +235,6 @@
                             </div>
                         </div>
                     </div>
-
-                    <!-- Show placeholder if no artists -->
                     <div v-if="artists.length === 0" class="artist-profile">
                         <div class="artists-info">
                             <div class="artist-image">
@@ -280,12 +244,10 @@
                                     <span class="artist-tag instagram">Instagram</span>
                                 </div>
                             </div>
-
                             <div class="artist-details">
                                 <div class="artist-info">
                                     <h3 class="artist-name">Default Artist</h3>
                                     <p class="artist-title">Tattoo Artist</p>
-
                                     <a href="#" class="artist-bio-btn">
                                         <span>Artist's bio</span>
                                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
@@ -295,18 +257,16 @@
                                         </svg>
                                     </a>
                                 </div>
-
                                 <div class="artist-styles">
                                     <h4>STYLES</h4>
                                     <ul>
-                                        <li>Minimal</li>
+                                        <li>流动Minimal</li>
                                         <li>Fine Line</li>
                                         <li>Geometric</li>
                                     </ul>
                                 </div>
                             </div>
                         </div>
-
                         <div class="artist-works">
                             <div class="works-slider">
                                 <div class="work-item">
@@ -320,9 +280,8 @@
         </section>
     </div>
 
-    <!-- Keep these scripts at the bottom, before the closing body tag -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    <script src="js/main.js"></script>
+    <script type="module" src="js/main.js"></script>
 </body>
 
 </html>

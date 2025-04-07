@@ -39,7 +39,7 @@ const app = Vue.createApp({
             // API-related properties
             artists: [],
             tattoos: [], // Ensure this is initialized as an empty array
-            apiBaseUrl: 'http://localhost:8000/api', // Path to your Lumen API
+            apiBaseUrl: 'http://localhost:8888/Inkspire-fip/api/public', // Path to your Lumen API
             loading: {
                 artists: false,
                 tattoos: false
@@ -111,7 +111,7 @@ const app = Vue.createApp({
             this.loading.artists = true;
             this.error.artists = null;
             
-            fetch(`${this.apiBaseUrl}/artists`)
+            fetch(`${this.apiBaseUrl}/api/artists`)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error(`Failed to fetch artists: ${response.status}`);
@@ -133,13 +133,7 @@ const app = Vue.createApp({
                     
                     this.loading.artists = false;
                     
-                    // Update about section with first artist's bio if available
-                    if (this.artists.length > 0) {
-                        const firstArtist = this.artists[0];
-                        if (firstArtist.bio) {
-                            this.aboutSection.description = firstArtist.bio;
-                        }
-                    }
+                    
                 })
                 .catch(error => {
                     console.error('Error fetching artists:', error);
@@ -154,7 +148,7 @@ const app = Vue.createApp({
             this.loading.tattoos = true;
             this.error.tattoos = null;
             
-            fetch(`${this.apiBaseUrl}/tattoos`)
+            fetch(`${this.apiBaseUrl}/api/tattoos`)
                 .then(response => {
                     if (!response.ok) {
                         throw new Error(`Failed to fetch tattoos: ${response.status}`);
