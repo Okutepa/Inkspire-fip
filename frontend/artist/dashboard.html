@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>INKSPIRE - Artist Dashboard</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;600&display=swap" rel="stylesheet">
+    <link href="../css/grid.css" rel="stylesheet">
+    <link href="../css/main.css" rel="stylesheet">
+    <link href="../css/dashboard.css" rel="stylesheet">
+</head>
+
+<body>
+    <div id="admin-app">
+        <!-- Loading message while the user is being loaded -->
+        <div v-if="!user" class="loading-screen">
+            <p>Loading dashboard...</p>
+        </div>
+
+        <!-- Main content only shown when user is available -->
+        <div v-if="user">
+            <header class="admin-header">
+                <div class="header-container">
+                    <div class="logo">
+                        <a href="../index.html"><img src="../images/inkspire-logo.svg" alt="Logo"></a>
+                        <span class="artist-badge">Artist</span>
+                    </div>
+                    <div class="admin-user">
+                        <span>{{ user.name }}</span>
+                        <button @click="logout" class="logout-btn">Logout</button>
+                    </div>
+                </div>
+            </header>
+
+            <div class="admin-container">
+                <nav class="admin-sidebar">
+                    <ul>
+                        <li>
+                            <a href="#" @click.prevent="activePanel = 'dashboard'"
+                                :class="{ active: activePanel === 'dashboard' }">
+                                Dashboard
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" @click.prevent="activePanel = 'tattoos'"
+                                :class="{ active: activePanel === 'tattoos' }">
+                                My Tattoos
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <main class="admin-content">
+                    <!-- Dashboard Panel -->
+                    <div v-if="activePanel === 'dashboard'" class="panel">
+                        <h1>Dashboard</h1>
+                        <div class="dashboard-stats">
+                            <div class="stat-card">
+                                <h3>My Tattoos</h3>
+                                <p class="stat-value">{{ filteredTattoos.length }}</p>
+                            </div>
+                        </div>
+                        <div class="recent-activity">
+                            <h2>Recent Activity</h2>
+                            <ul class="activity-list">
+                                <li v-if="recentTattoos.length > 0" v-for="tattoo in recentTattoos"
+                                    :key="tattoo.tattoo_id">
+                                    Added tattoo "<span>{{ tattoo.title }}</span>"
+                                </li>
+                                <li v-if="recentTattoos.length === 0">No recent activity</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Tattoos Panel -->
+                    <div v-if="activePanel === 'tattoos'" class="panel">
+                        <div class="panel-header">
+                            <h1>My Tattoos</h1>
+                            <button @click="showTattooForm = true; editingTattoo = null; resetTattooForm()"
+                                class="add-btn">
+                                Add New Tattoo
+                            </button>
+                        </div>
+
+                        <!-- Tattoo Form Modal -->
+                        <div v-if="showTattooForm" class="modal">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h2>{{ editingTattoo ? 'Edit Tattoo' : 'Add New Tattoo' }}</h2>
+                                    <button @click="closeTattooForm" class="close-btn">×</button>
+                                </div>
+                                <div class="modal-body">
+                                    <form @submit.prevent="saveTattoo">
+                                        <div class="form-group">
+                                            <label for="tattoo-title">Title</label>
+                                            <input type="text" id="tattoo-title" v-model="tattooForm.title" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="tattoo-description">Description</label>
+                                            <textarea id="tattoo-description" v-model="tattooForm.description"
+                                                rows="4"></textarea>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="tattoo-image">Image</label>
+                                            <input type="file" id="tattoo-image" @change="handleTattooImageUpload">
+                                            <div v-if="tattooForm.imagePreview" class="preview-image">
+                                                <img :src="tattooForm.imagePreview" alt="Tattoo preview">
+                                            </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Featured</label>
+                                            <div class="checkbox-wrapper">
+                                                <input type="checkbox" id="tattoo-featured"
+                                                    v-model="tattooForm.featured">
+                                                <label for="tattoo-featured">Show in homepage portfolio</label>
+                                            </div>
+                                        </div>
+                                        <div class="form-actions">
+                                            <button type="button" @click="closeTattooForm"
+                                                class="cancel-btn">Cancel</button>
+                                            <button type="submit" class="save-btn" :disabled="saving">
+                                                <span v-if="saving">Saving...</span>
+                                                <span v-else>Save</span>
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-if="loading.tattoos" class="loading">Loading tattoos...</div>
+                        <div v-else-if="error.tattoos" class="error">{{ error.tattoos }}</div>
+                        <div v-else>
+                            <div class="filter-container">
+                                <div class="search-box">
+                                    <input type="text" v-model="tattooSearch" placeholder="Search by title..."
+                                        @input="filterTattoos">
+                                </div>
+                            </div>
+
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Image</th>
+                                        <th>Title</th>
+                                        <th>Featured</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="tattoo in filteredTattoos" :key="tattoo.tattoo_id">
+                                        <td>{{ tattoo.tattoo_id }}</td>
+                                        <td>
+                                            <img :src="tattoo.file_path" alt="Tattoo" class="thumbnail">
+                                        </td>
+                                        <td>{{ tattoo.title }}</td>
+                                        <td>
+                                            <span :class="tattoo.featured ? 'featured-badge' : 'not-featured-badge'">
+                                                {{ tattoo.featured ? 'Yes' : 'No' }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <button @click="editTattoo(tattoo)" class="edit-btn">Edit</button>
+                                            <button @click="confirmDeleteTattoo(tattoo)"
+                                                class="delete-btn">Delete</button>
+                                        </td>
+                                    </tr>
+                                    <tr v-if="filteredTattoos.length === 0">
+                                        <td colspan="5" class="empty-table">No tattoos found. Add your first tattoo!
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Confirmation Modal -->
+                    <div v-if="confirmModal.show" class="modal">
+                        <div class="modal-content confirmation-modal">
+                            <div class="modal-header">
+                                <h2>{{ confirmModal.title }}</h2>
+                                <button @click="confirmModal.show = false" class="close-btn">×</button>
+                            </div>
+                            <div class="modal-body">
+                                <p>{{ confirmModal.message }}</p>
+                                <div class="modal-actions">
+                                    <button @click="confirmModal.show = false" class="cancel-btn">Cancel</button>
+                                    <button @click="confirmModal.onConfirm" class="delete-confirm-btn">Yes,
+                                        Delete</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script type="module" src="../js/pages/admin.js"></script>
+</body>
+
+</html>

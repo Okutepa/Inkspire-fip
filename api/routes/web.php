@@ -11,6 +11,7 @@ $router->get('/', function () {
 $router->group(['prefix' => 'api'], function () use ($router) {
     // Public auth endpoints
     $router->post('login', 'AuthController@login');
+    $router->post('register', 'AuthController@register'); // Add register route
     
     // Protected auth endpoints
     $router->group(['middleware' => 'auth'], function () use ($router) {

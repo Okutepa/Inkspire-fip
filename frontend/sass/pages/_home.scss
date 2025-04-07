@@ -53,6 +53,11 @@ body {
         .heading {
             text-align: center;
             margin-bottom: 3.75rem; // 60px to rem
+
+            h2 {
+                width: 300px; // Fixed width for mobile
+                margin: 0 auto; // Center align
+            }
         }
 
         .about-img {
@@ -88,12 +93,23 @@ body {
             }
         }
 
-        .about-button {
-            .about-us-button {
-                width: 100%; // Full width button on mobile
+        // .about-button {
+        //     .about-us-button {
+        //         width: 100%; // Full width button on mobile
+        //     }
+        // }
+
+    }
+
+    .video-reel {
+        .heading {
+            h2 {
+                font-size: 2.5rem;
+                font-style: italic;
+                font-weight: 800;
+                line-height: 100%;
             }
         }
-
     }
 
     .features-section {
@@ -389,13 +405,38 @@ body {
         }
 
         .about {
+            .heading {
+                h2 {
+                    width: 100%; // Full width on tablet
+                }
+            }
+
             .about-text {
+
+
                 h3 {
                     width: 70%; // Adjusted for tablet
                 }
 
                 .descriptive-p {
                     width: 90%; // Adjusted for tablet
+                }
+            }
+
+            // .about-button {
+            //     .about-us-button {
+            //         width: 100%; // Full width button on mobile
+            //     }
+            // }
+        }
+
+        .video-reel {
+            .heading {
+                h2 {
+                    font-size: 4.5rem;
+                    font-style: italic;
+                    font-weight: 800;
+                    line-height: 100%;
                 }
             }
         }
@@ -458,6 +499,12 @@ body {
         }
 
         .about {
+            .heading {
+                h2 {
+                    width: 100%; // Full width on tablet
+                }
+            }
+
             .about-img {
                 flex-direction: row; // Side by side on desktop
 
@@ -481,11 +528,11 @@ body {
                 }
             }
 
-            .about-button {
-                .about-us-button {
-                    width: auto; // Auto width on desktop
-                }
-            }
+            // .about-button {
+            //     .about-us-button {
+            //         width: 100%; 
+            //     }
+            // }
         }
 
         .features-section {
