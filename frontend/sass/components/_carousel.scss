@@ -5,6 +5,7 @@
     padding: 2rem 0; // Base padding for mobile
     background-color: #F7F5EB;
     color: $secondary-color;
+    border-bottom: 1px solid black;
 
     .grid-con {
         max-width: none; // Remove any max-width constraint

@@ -217,7 +217,7 @@ body {
 
     .artists-section {
         background-color: #F7F5EB; // Cream background
-        padding: 3rem 0;
+        padding: 2rem 0;
 
         .heading {
             text-align: center;
@@ -240,28 +240,31 @@ body {
         .artists-container {
             display: flex;
             flex-direction: column;
-            gap: 4rem; // Space between artists
+            gap: 2rem; // Space between artists
         }
 
         .artist-profile {
             display: flex;
             flex-direction: column; // Mobile first - stacked layout
             gap: 2rem;
+            border-bottom: 1px solid black;
+            padding-bottom: 24px;
         }
 
         .artists-info {
             display: flex;
+            flex-direction: column;
             gap: 1.4rem;
         }
 
         .artist-image {
-            width: 310px;
             position: relative;
             border: 3px solid #0E76BC; // Blue border as in your design
-            margin-bottom: 1.5rem;
 
             img {
                 width: 100%;
+                height: 360px; // Set height for mobile
+                object-fit: cover;
                 display: block;
             }
 
@@ -295,7 +298,6 @@ body {
 
         .artist-details {
             display: flex;
-            flex-direction: column;
             justify-content: space-between;
         }
 
@@ -364,7 +366,6 @@ body {
             .works-slider {
                 display: flex;
                 gap: 1rem;
-                padding: 0 5%;
                 overflow-x: auto;
                 scroll-snap-type: x mandatory;
                 scrollbar-width: none; // Hide scrollbar in Firefox
@@ -468,6 +469,12 @@ body {
                 flex-direction: column; // Still column for tablet
             }
 
+            .artists-info {
+                display: flex;
+                gap: 1.4rem;
+                height: 100%;
+            }
+
             .artist-works {
                 .works-slider {
                     .work-item {
@@ -475,6 +482,8 @@ body {
                     }
                 }
             }
+
+
         }
     }
 }
@@ -574,14 +583,12 @@ body {
             .artist-profile {
                 flex-direction: row; // Side by side for desktop
                 align-items: flex-start;
-                // padding: 0 5%;
+                gap: 2rem; // Add gap between info and works
             }
 
-            .artist-info {
-                display: flex;
-                flex-direction: column;
-                flex: 0 0 40%; // 40% width on desktop
-                padding: 0;
+            .artists-info {
+                flex-direction: row;
+                flex: 1 1 50%; // Changed from 60% to 50%
             }
 
             .artist-details {
@@ -589,25 +596,17 @@ body {
             }
 
             .artist-works {
-                flex: 0 0 60%; // 60% width on desktop
-                padding-left: 2rem;
+                flex: 0 0 45%; // Changed from 60% to 45%
+                height: 100%;
 
                 .works-slider {
                     padding: 0;
+                    height: 100%;
 
                     .work-item {
-                        width: 250px; // Fixed width for desktop
+                        width: 340px; // Fixed width for desktop
+                        height: 100%;
                     }
-                }
-            }
-
-            // Alternate layout for even-numbered artists
-            .artist-profile:nth-child(even) {
-                flex-direction: row-reverse;
-
-                .artist-works {
-                    padding-left: 0;
-                    padding-right: 2rem;
                 }
             }
         }
