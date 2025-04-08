@@ -124,16 +124,16 @@ const app = Vue.createApp({
                     
                     // Get data from paginated response
                     const artistsData = data.data || [];
-                    
-                    // Force use the default images we know exist instead of trying to load from API
+        
+                    // Use the actual images from the API
                     this.artists = artistsData.map(artist => ({
                         ...artist,
-                        photo_path: "images/portfolio-1.jpg" // Use existing image that we know works
+                        photo_path: artist.photo_path ? 
+                            `${this.apiBaseUrl}/storage/artists/${artist.photo_path.split('/').pop()}` : 
+                            "images/default-artist.jpg"
                     }));
                     
                     this.loading.artists = false;
-                    
-                    
                 })
                 .catch(error => {
                     console.error('Error fetching artists:', error);
@@ -161,22 +161,15 @@ const app = Vue.createApp({
                     
                     // Get data from paginated response
                     const tattoosData = data.data || [];
-                    
-                    // Force use the default portfolio images we know exist
-                    const portfolioFallbacks = [
-                        "images/portfolio-1.jpg",
-                        "images/portfolio-2.jpg",
-                        "images/portfolio-3.jpg",
-                        "images/portfolio-4.jpg",
-                        "images/portfolio-5.jpg"
-                    ];
-                    
-                    // Map each tattoo to a known working image
-                    this.tattoos = tattoosData.map((tattoo, index) => ({
+        
+                    // Use the actual images from the API with corrected paths
+                    this.tattoos = tattoosData.map(tattoo => ({
                         ...tattoo,
-                        file_path: portfolioFallbacks[index % portfolioFallbacks.length]
+                        file_path: tattoo.file_path ? 
+                            `${this.apiBaseUrl}/storage/tattoos/${tattoo.file_path.split('/').pop()}` : 
+                            "images/default-tattoo.jpg"
                     }));
-                    
+        
                     this.loading.tattoos = false;
                     
                     // Update portfolio images if tattoos are available

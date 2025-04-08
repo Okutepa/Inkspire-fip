@@ -227,7 +227,7 @@ const app = createApp({
             formData.append('description', this.tattooForm.description);
             formData.append('artist_id', this.tattooForm.artist_id);
             formData.append('featured', this.tattooForm.featured ? '1' : '0');
-            if (this.tattooForm.image) formData.append('image', this.tattooForm.image);
+            if (this.tattooForm.image) formData.append('file_path', this.tattooForm.image);
             const url = this.editingTattoo ? `${API_BASE_URL}/api/tattoos/${this.editingTattoo.tattoo_id}` : `${API_BASE_URL}/api/tattoos`;
             const method = this.editingTattoo ? 'PUT' : 'POST';
             try {
