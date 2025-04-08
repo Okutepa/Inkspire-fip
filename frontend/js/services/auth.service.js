@@ -137,17 +137,25 @@ export default {
         })
         .then(response => {
             if (!response.ok) {
+                // Token was rejected by the server
+                this.clearAuth(); // Clear invalid token
                 throw new Error('Failed to get user info');
             }
             return response.json();
         })
         .then(data => {
+            if (!data || !data.id) {
+                // Invalid user data
+                this.clearAuth();
+                return null;
+            }
             // Update the stored user data with the latest from server
             this.setUser(data);
             return data;
         })
         .catch(err => {
             console.error('Error fetching current user:', err);
+            this.clearAuth(); // Clear on any error
             return null;
         });
     }
