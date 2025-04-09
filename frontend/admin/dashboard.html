@@ -111,6 +111,15 @@
                                             <input type="text" id="artist-name" v-model="artistForm.name" required>
                                         </div>
                                         <div class="form-group">
+                                            <label for="artist-email">Email</label>
+                                            <input type="email" id="artist-email" v-model="artistForm.email" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="artist-password">Password</label>
+                                            <input type="password" id="artist-password" v-model="artistForm.password"
+                                                required>
+                                        </div>
+                                        <div class="form-group">
                                             <label for="artist-bio">Bio</label>
                                             <textarea id="artist-bio" v-model="artistForm.bio" rows="4"></textarea>
                                         </div>

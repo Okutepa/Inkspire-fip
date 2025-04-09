@@ -99,6 +99,18 @@ export default {
         }
     },
     
+    updateUserData(userData) {
+        // Make a copy to avoid modifying the original object
+        const updatedData = { ...userData };
+        
+        // Remove token if present, as it should be stored separately
+        if (updatedData.token) {
+            delete updatedData.token;
+        }
+        
+        localStorage.setItem(USER_KEY, JSON.stringify(updatedData));
+    },
+    
     setUser(user) {
         localStorage.setItem(USER_KEY, JSON.stringify(user));
     },

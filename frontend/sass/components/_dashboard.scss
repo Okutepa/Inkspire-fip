@@ -1,6 +1,5 @@
 @use '../abstracts' as *;
 
-
 // Loading screen
 .loading-screen {
     display: flex;
@@ -217,6 +216,113 @@
     }
 }
 
+// Profile section styling
+.profile-form-container {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+// Preview image for profile photo
+.preview-image {
+    margin-top: 0.5rem;
+    max-width: 200px;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid #ddd;
+
+    img {
+        width: 100%;
+        height: auto;
+        display: block;
+    }
+}
+
+// Specialties tags container
+.specialties-container {
+    margin-top: 0.5rem;
+}
+
+.specialty-input-group {
+    display: flex;
+    flex-direction: row;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+
+    input {
+        flex: 1;
+    }
+
+    .add-specialty-btn {
+        background-color: $secondary-color;
+        color: $primary-color;
+        border: none;
+        padding: 0.75rem;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+        font-weight: 600;
+        font-size: 0.875rem;
+
+        &:hover {
+            background-color: darken($secondary-color, 10%);
+        }
+    }
+}
+
+.specialties-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.specialty-tag {
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    padding: 0.5rem 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.remove-specialty-btn {
+    background: none;
+    border: none;
+    color: #777;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+
+    &:hover {
+        background-color: #e0e0e0;
+        color: #333;
+    }
+}
+
+.no-specialties {
+    color: #888;
+    font-style: italic;
+    padding: 0.5rem 0;
+}
+
+// Social media container
+.social-media-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
 // Buttons
 .add-btn,
 .logout-btn,
@@ -332,6 +438,26 @@
     }
 }
 
+// Status badges for featured tattoos
+.featured-badge,
+.not-featured-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.featured-badge {
+    background-color: #e7f4e8;
+    color: #28a745;
+}
+
+.not-featured-badge {
+    background-color: #f5f5f5;
+    color: #6c757d;
+}
+
 // Filter controls
 .filter-container {
     display: flex;
@@ -357,6 +483,17 @@
             border-radius: 4px;
             font-size: 0.875rem;
         }
+    }
+}
+
+// Style filter for tattoos
+.style-filter {
+    select {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 0.875rem;
     }
 }
 
@@ -417,6 +554,68 @@
     }
 }
 
+// Notification styling
+.notification {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    right: 20px;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 1000;
+    animation: slideIn 0.3s ease-out forwards;
+}
+
+.notification.success {
+    background-color: #e7f4e8;
+    border-left: 4px solid #28a745;
+    color: #155724;
+}
+
+.notification.error {
+    background-color: #f8e9e9;
+    border-left: 4px solid #dc3545;
+    color: #721c24;
+}
+
+.notification-content {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    justify-content: space-between;
+}
+
+.close-notification {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    font-size: 18px;
+    opacity: 0.7;
+    padding: 0;
+    margin-left: 15px;
+}
+
+.close-notification:hover {
+    opacity: 1;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
 // Form styling
 .form-group {
     margin-bottom: 1rem;
@@ -431,6 +630,7 @@
     input[type="text"],
     input[type="email"],
     input[type="password"],
+    input[type="number"],
     select,
     textarea {
         width: 100%;
@@ -626,5 +826,29 @@
         justify-content: flex-end;
         gap: 1rem;
         margin-top: 2rem;
+    }
+
+    .profile-form-container {
+        padding: 1.5rem;
+    }
+
+    .specialty-input-group {
+        gap: 0.75rem;
+    }
+
+    .social-media-container {
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .notification {
+        width: auto;
+        max-width: 400px;
+        left: auto;
+        right: 20px;
+    }
+
+    .preview-image {
+        max-width: 250px;
     }
 }
