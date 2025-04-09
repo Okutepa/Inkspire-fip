@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Inkspire - Artist Bio</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;600&display=swap" rel="stylesheet">
+    <link href="css/grid.css" rel="stylesheet">
+    <link href="css/main.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+</head>
+
+<body>
+    <div id="artist-bio-app">
+        <header>
+            <div class="header-container">
+                <div class="logo">
+                    <a href="index.html"><img src="images/inkspire-logo.svg" alt="Logo"></a>
+                </div>
+                <div class="menu-btn" :class="{ open: menuOpen }" @click="toggleMenu">
+                    <div class="menu-btn__burger"></div>
+                </div>
+            </div>
+        </header>
+
+        <nav class="nav-menu" :class="{ open: menuOpen }">
+            <ul>
+                <li><a href="index.html" @click="closeMenu">Home</a></li>
+                <li><a href="index.html#about" @click="closeMenu">About</a></li>
+                <li><a href="index.html#services" @click="closeMenu">Services</a></li>
+                <li><a href="index.html#contact" @click="closeMenu">Contact</a></li>
+            </ul>
+        </nav>
+
+        <!-- Loading State -->
+        <div v-if="loading" class="loading-container">
+            <div class="loading-spinner"></div>
+            <p>Loading artist profile...</p>
+        </div>
+
+        <!-- Error State -->
+        <div v-if="error && !loading" class="error-container">
+            <p>{{ error }}</p>
+            <div class="about-button">
+                <a href="index.html" class="about-us-button">
+                    <div class="text-container">BACK TO HOME</div>
+                    <div class="icon-container">
+                        <div class="icon">
+                            <img src="images/logo-icon.svg" alt="INKSPIRE">
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <!-- Artist Bio Content -->
+        <main v-if="artist && !loading && !error">
+            <section class="artist-bio-hero">
+                <div class="grid-con">
+                    <div class="col-span-full">
+                        <h1>{{ artist.name }}</h1>
+                    </div>
+                </div>
+            </section>
+
+            <section class="artist-bio-section">
+                <div class="grid-con">
+                    <div class="artist-profile-container col-span-full">
+                        <div class="artist-image">
+                            <img :src="artist.photo_path" :alt="artist.name">
+                            <div class="artist-tags">
+                                <span class="artist-tag resident">Resident Artist</span>
+                                <span class="artist-tag instagram">Instagram</span>
+                            </div>
+                        </div>
+                        <div class="artist-info">
+                            <div class="bio-content">
+                                <p v-if="artist.bio">{{ artist.bio }}</p>
+                                <p v-else>This artist hasn't added a bio yet. Check back soon for updates!</p>
+                            </div>
+                            <div class="artist-styles">
+                                <h3>STYLES</h3>
+                                <ul>
+                                    <li>Minimal</li>
+                                    <li>Fine Line</li>
+                                    <li>Geometric</li>
+                                </ul>
+                            </div>
+                            <div class="about-button artist-back-btn">
+                                <a href="index.html#artists" class="about-us-button">
+                                    <div class="text-container">BACK TO ARTISTS</div>
+                                    <div class="icon-container">
+                                        <div class="icon">
+                                            <img src="images/logo-icon.svg" alt="INKSPIRE">
+                                        </div>
+                                    </div>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="artist-works-section">
+                <div class="grid-con">
+                    <div class="heading col-span-full">
+                        <img src="images/logo-icon.svg" alt="INKSPIRE" class="section-icon">
+                        <h2>{{ artist.name }}'s WORK</h2>
+                    </div>
+
+                    <div v-if="loadingWorks" class="col-span-full loading-container">
+                        <div class="loading-spinner"></div>
+                        <p>Loading works...</p>
+                    </div>
+
+                    <div v-if="errorWorks && !loadingWorks" class="col-span-full error-message">
+                        <p>{{ errorWorks }}</p>
+                    </div>
+
+                    <div v-if="!loadingWorks && !errorWorks" class="artist-works-container col-span-full">
+                        <div v-if="artistWorks.length === 0" class="no-works-message">
+                            <p>No works to display yet. Check back soon!</p>
+                        </div>
+                        <div v-else class="works-grid">
+                            <div v-for="work in artistWorks" :key="work.tattoo_id" class="work-item">
+                                <img :src="work.file_path" :alt="work.title">
+                                <div class="work-overlay">
+                                    <h3>{{ work.title }}</h3>
+                                    <p v-if="work.description">{{ work.description }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer v-if="artist && !loading && !error" class="site-footer">
+            <div class="grid-con">
+                <div class="footer-content col-span-full">
+                    <div class="footer-logo">
+                        <img src="images/inkspire-logo.svg" alt="Inkspire Logo">
+                    </div>
+                    <div class="footer-links">
+                        <ul>
+                            <li><a href="index.html">Home</a></li>
+                            <li><a href="index.html#about">About</a></li>
+                            <li><a href="index.html#services">Services</a></li>
+                            <li><a href="index.html#contact">Contact</a></li>
+                        </ul>
+                    </div>
+                    <div class="footer-social">
+                        <a href="#" class="social-icon"><img src="images/instagram-icon.svg" alt="Instagram"></a>
+                        <a href="#" class="social-icon"><img src="images/facebook-icon.svg" alt="Facebook"></a>
+                        <a href="#" class="social-icon"><img src="images/twitter-icon.svg" alt="Twitter"></a>
+                    </div>
+                </div>
+                <div class="footer-bottom col-span-full">
+                    <p>&copy; 2025 INKSPIRE. All rights reserved.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script type="module" src="js/pages/artist-bio.js"></script>
+</body>
+
+</html>

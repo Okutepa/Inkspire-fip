@@ -58,20 +58,57 @@ class TattooController extends Controller
     public function update(Request $request, $id)
     {
         try {
+            // Log the incoming request for debugging
+            Log::info('Tattoo update request received', [
+                'id' => $id,
+                'has_file' => $request->hasFile('file_path'),
+                'all_inputs' => $request->except('file_path')
+            ]);
+    
             $this->validate($request, [
                 'title' => 'sometimes|required|string|max:255',
                 'description' => 'nullable|string',
                 'artist_id' => 'nullable|integer',
-                'file_path' => 'nullable|string|max:500'
+                'file_path' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
             ]);
-
+    
             $tattoo = Tattoo::findOrFail($id);
-            $tattoo->update($request->all());
+            
+            // Get all input data except the file
+            $data = $request->except('file_path');
+            
+            // Handle the file upload if provided
+            if ($request->hasFile('file_path')) {
+                Log::info('Processing file upload for tattoo update', [
+                    'original_filename' => $request->file('file_path')->getClientOriginalName()
+                ]);
+                
+                $file = $request->file('file_path');
+                $path = $file->store('tattoos', 'public'); // Store and get path
+                $data['file_path'] = $path; // Add the path to the data array
+            }
+    
+            // Update the tattoo with all data
+            $tattoo->update($data);
+            
+            Log::info('Tattoo updated successfully', [
+                'id' => $tattoo->tattoo_id,
+                'title' => $tattoo->title
+            ]);
+    
             return response()->json($tattoo, 200);
         } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Validation failed during tattoo update', [
+                'id' => $id,
+                'errors' => $e->errors()
+            ]);
             return response()->json(['error' => 'Validation failed', 'details' => $e->errors()], 422);
         } catch (\Exception $e) {
-            Log::error('Error updating tattoo', ['id' => $id, 'message' => $e->getMessage()]);
+            Log::error('Error updating tattoo', [
+                'id' => $id, 
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return response()->json(['error' => 'Failed to update tattoo', 'details' => $e->getMessage()], 500);
         }
     }
