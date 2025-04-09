@@ -34,7 +34,7 @@ class TattooController extends Controller
             $this->validate($request, [
                 'title' => 'required|string|max:255',
                 'description' => 'nullable|string',
-                'artist_id' => 'nullable|integer|exists:artists,artist_id',
+                'artist_id' => 'required|integer|exists:artists,artist_id',
                 'file_path' => 'nullable|image|max:2048'
             ]);
     
