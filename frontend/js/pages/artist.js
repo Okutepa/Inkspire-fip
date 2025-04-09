@@ -60,25 +60,56 @@ const app = createApp({
                 message: '',
                 timeout: null
             },
-            styleFilter: ''
+            styleFilter: '',
+            profileCompletionItems: {
+                name: { label: 'Name', completed: false },
+                photo: { label: 'Profile Photo', completed: false },
+                bio: { label: 'Bio', completed: false },
+                experience: { label: 'Experience', completed: false },
+                specialties: { label: 'Specialties', completed: false },
+                social: { label: 'Social Media', completed: false }
+            }
         };
     },
     computed: {
         profileCompletionPercentage() {
-            let total = 0;
-            let completed = 0;
+            // Update the completion status based on current user data
+            this.updateProfileCompletionStatus();
             
-            total++; if (this.user.name) completed++;
-            total++; if (this.user.photo_path) completed++;
-            total++; if (this.user.bio) completed++;
-            total++; if (this.user.experience > 0) completed++;
-            total++; if (this.user.specialties && this.user.specialties.length > 0) completed++;
-            total++; if (this.user.social && (this.user.social.instagram || this.user.social.twitter || this.user.social.facebook)) completed++;
+            // Count completed items
+            const total = Object.keys(this.profileCompletionItems).length;
+            const completed = Object.values(this.profileCompletionItems).filter(item => item.completed).length;
             
             return Math.round((completed / total) * 100);
+        },
+        incompleteProfileItems() {
+            return Object.entries(this.profileCompletionItems)
+                .filter(([key, item]) => !item.completed)
+                .map(([key, item]) => item.label);
         }
     },
     methods: {
+        updateProfileCompletionStatus() {
+            // Check each profile item and update its completion status
+            if (this.user) {
+                this.profileCompletionItems.name.completed = Boolean(this.user.name && this.user.name.trim().length > 0);
+                this.profileCompletionItems.photo.completed = Boolean(this.user.photo_path && !this.user.photo_path.includes('default-artist.jpg'));
+                this.profileCompletionItems.bio.completed = Boolean(this.user.bio && this.user.bio.trim().length >= 50); // Require a minimum bio length
+                this.profileCompletionItems.experience.completed = Boolean(this.user.experience && this.user.experience > 0);
+                
+                // Check specialties - require at least 2 specialties
+                const specialtiesArray = Array.isArray(this.user.specialties) ? this.user.specialties : [];
+                this.profileCompletionItems.specialties.completed = specialtiesArray.length >= 2;
+                
+                // Check if any social media is filled
+                const social = this.user.social || {};
+                this.profileCompletionItems.social.completed = Boolean(
+                    (social.instagram && social.instagram.trim()) || 
+                    (social.twitter && social.twitter.trim()) || 
+                    (social.facebook && social.facebook.trim())
+                );
+            }
+        },
         checkAuth() {
             console.log("Checking authentication...");
             if (!authService.isLoggedIn()) {
@@ -110,7 +141,7 @@ const app = createApp({
             this.loading.profile = true;
             this.error.profile = null;
             
-            // Updated API endpoint to fetch artist profile for the authenticated user
+            // API endpoint to fetch artist profile for the authenticated user
             const apiUrl = `${API_BASE_URL}/api/artist/me`;
             
             fetch(apiUrl, { 
@@ -183,6 +214,9 @@ const app = createApp({
                             twitter: '',
                             facebook: ''
                         };
+                        
+                        // Update profile completion status
+                        this.updateProfileCompletionStatus();
                     } else {
                         // Fallback if no profile exists
                         this.profileForm.name = this.user.name || '';
@@ -237,10 +271,46 @@ const app = createApp({
         removeSpecialty(index) {
             this.profileForm.specialties.splice(index, 1);
         },
+        validateProfileForm() {
+            let errors = [];
+            
+            if (!this.profileForm.name.trim()) {
+                errors.push('Name is required');
+            }
+            
+            if (!this.profileForm.bio.trim()) {
+                errors.push('Bio is required');
+            } else if (this.profileForm.bio.trim().length < 50) {
+                errors.push('Bio should be at least 50 characters long');
+            }
+            
+            if (!this.profileForm.experience) {
+                errors.push('Years of experience is required');
+            }
+            
+            if (this.profileForm.specialties.length < 2) {
+                errors.push('Please add at least 2 specialties');
+            }
+            
+            const hasSocial = Boolean(
+                (this.profileForm.social.instagram && this.profileForm.social.instagram.trim()) || 
+                (this.profileForm.social.twitter && this.profileForm.social.twitter.trim()) || 
+                (this.profileForm.social.facebook && this.profileForm.social.facebook.trim())
+            );
+            
+            if (!hasSocial) {
+                errors.push('Please add at least one social media profile');
+            }
+            
+            return errors;
+        },
         async saveProfile() {
             console.log('Saving profile with form data:', this.profileForm);
-            if (!this.profileForm.name.trim()) {
-                this.showNotification('error', 'Artist name is required');
+            
+            // Validate form
+            const validationErrors = this.validateProfileForm();
+            if (validationErrors.length > 0) {
+                this.showNotification('error', validationErrors[0]);
                 return;
             }
             
@@ -298,9 +368,19 @@ const app = createApp({
                 this.user = updatedUser;
                 authService.updateUserData(updatedUser);
                 
+                // Update profile completion status
+                this.updateProfileCompletionStatus();
+                
                 this.savingProfile = false;
                 this.profileUpdated = true;
                 this.showNotification('success', 'Profile updated successfully');
+                
+                // If profile is now 100% complete, show special notification
+                if (this.profileCompletionPercentage === 100) {
+                    setTimeout(() => {
+                        this.showNotification('success', '🎉 Congratulations! Your profile is now 100% complete.');
+                    }, 2000);
+                }
             } catch (error) {
                 console.error('Error updating profile:', error);
                 this.showNotification('error', 'Failed to update profile. Please try again.');

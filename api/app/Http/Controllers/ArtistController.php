@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Artist;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class ArtistController extends Controller
@@ -301,6 +303,146 @@ class ArtistController extends Controller
                 'stack' => $e->getTraceAsString(),
             ]);
             return response()->json(['error' => 'Failed to fetch artist tattoos'], 500);
+        }
+    }
+
+    /**
+     * Get the authenticated artist's profile.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getMyProfile()
+    {
+        try {
+            // Get the authenticated user
+            $user = Auth::user();
+            
+            if (!$user) {
+                return response()->json(['error' => 'Unauthenticated'], 401);
+            }
+            
+            // Get the artist profile associated with the authenticated user
+            $artist = Artist::where('user_id', $user->user_id)->first();
+            
+            if (!$artist) {
+                return response()->json(['error' => 'Artist profile not found'], 404);
+            }
+            
+            // Format photo URL
+            if ($artist->photo_path) {
+                $artist->photo_url = Storage::url($artist->photo_path);
+            }
+            
+            return response()->json($artist);
+        } catch (\Exception $e) {
+            Log::error('Error fetching artist profile', [
+                'message' => $e->getMessage(),
+                'stack' => $e->getTraceAsString(),
+            ]);
+            return response()->json(['error' => 'Failed to fetch artist profile', 'details' => $e->getMessage()], 500);
+        }
+    }
+    
+    /**
+     * Update the authenticated artist's profile.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function updateMyProfile(Request $request)
+    {
+        try {
+            // Get the authenticated user
+            $user = Auth::user();
+            
+            if (!$user) {
+                return response()->json(['error' => 'Unauthenticated'], 401);
+            }
+            
+            // Get the artist profile associated with the authenticated user
+            $artist = Artist::where('user_id', $user->user_id)->first();
+            
+            if (!$artist) {
+                return response()->json(['error' => 'Artist profile not found'], 404);
+            }
+            
+            // Validate the request
+            $this->validate($request, [
+                'name' => 'sometimes|required|string|max:255',
+                'bio' => 'sometimes|required|string',
+                'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'specialties' => 'nullable|string',
+                'experience' => 'nullable|integer|min:0',
+                'social' => 'nullable|string',
+            ], [
+                'name.required' => 'The artist name is required.',
+                'bio.required' => 'The artist bio is required.',
+                'photo.image' => 'The uploaded file must be an image (JPEG, PNG, JPG, or GIF).',
+                'photo.mimes' => 'The image must be a JPEG, PNG, JPG, or GIF file.',
+                'photo.max' => 'The image size must not exceed 2MB.',
+                'experience.integer' => 'Years of experience must be a whole number.',
+                'experience.min' => 'Years of experience cannot be negative.',
+            ]);
+            
+            // Update user name if provided
+            if ($request->has('name')) {
+                $user->name = $request->input('name');
+                $user->save();
+                $artist->name = $request->input('name');
+            }
+            
+            // Update artist fields
+            if ($request->has('bio')) {
+                $artist->bio = $request->input('bio');
+            }
+            
+            if ($request->has('specialties')) {
+                $artist->specialties = $request->input('specialties');
+            }
+            
+            if ($request->has('experience')) {
+                $artist->experience = $request->input('experience');
+            }
+            
+            if ($request->has('social')) {
+                $artist->social = $request->input('social');
+            }
+            
+            // Handle photo upload
+            if ($request->hasFile('photo')) {
+                // Delete old photo if it exists
+                if ($artist->photo_path) {
+                    Storage::disk('public')->delete($artist->photo_path);
+                }
+                
+                $photo = $request->file('photo');
+                $filename = time() . '_' . $photo->getClientOriginalName();
+                $path = $photo->storeAs('artists', $filename, 'public');
+                $artist->photo_path = $path;
+            }
+            
+            // Save artist updates
+            $artist->save();
+            
+            // Format photo URL
+            if ($artist->photo_path) {
+                $artist->photo_url = Storage::url($artist->photo_path);
+            }
+            
+            return response()->json([
+                'message' => 'Profile updated successfully',
+                'artist' => $artist
+            ]);
+            
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            Log::error('Validation failed during artist profile update', ['errors' => $e->errors()]);
+            return response()->json(['error' => 'Validation failed', 'details' => $e->errors()], 422);
+        } catch (\Exception $e) {
+            Log::error('Error updating artist profile', [
+                'message' => $e->getMessage(),
+                'stack' => $e->getTraceAsString(),
+            ]);
+            return response()->json(['error' => 'Failed to update artist profile', 'details' => $e->getMessage()], 500);
         }
     }
 }

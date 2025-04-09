@@ -23,6 +23,10 @@ $router->group(['prefix' => 'api'], function () use ($router) {
 
 // Protected API routes (require authentication)
 $router->group(['prefix' => 'api', 'middleware' => 'auth'], function () use ($router) {
+    // Artist profile management - NEW ENDPOINTS
+    $router->get('artist/me', 'ArtistController@getMyProfile');
+    $router->put('artist/me', 'ArtistController@updateMyProfile');
+    
     // Artist write/delete routes
     $router->post('artists', 'ArtistController@store');
     $router->put('artists/{id}', 'ArtistController@update');
