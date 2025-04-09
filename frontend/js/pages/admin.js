@@ -54,21 +54,44 @@ const app = createApp({
             window.location.href = '../login.html';
         },
         fetchArtists() {
-            if (!this.user) return; // Make sure user is loaded before fetching
-            
+            if (!this.user) return;
+        
             this.loading.artists = true;
             this.error.artists = null;
-            fetch(`${API_BASE_URL}/api/artists`, { headers: authService.getAuthHeader() })
+            
+            // Add a timestamp to avoid browser caching
+            const nocache = new Date().getTime();
+            fetch(`${API_BASE_URL}/api/artists?nocache=${nocache}`, { 
+                headers: authService.getAuthHeader(),
+                // Using GET method but ensuring fresh data with nocache parameter
+                method: 'GET'
+            })
                 .then(response => {
                     if (!response.ok) throw new Error('Failed to fetch artists');
                     return response.json();
                 })
                 .then(data => {
                     console.log('Fetched artists:', data);
-                    this.artists = data.data || [];
+                    const processedArtists = (data.data || []).map(artist => {
+                        if (artist.photo_path) {
+                            // Add a cache-busting parameter to image URLs
+                            if (!artist.photo_path.startsWith('http')) {
+                                const filename = artist.photo_path.split('/').pop();
+                                artist.photo_path = `${API_BASE_URL}/storage/artists/${filename}?t=${nocache}`;
+                            } else {
+                                // If it's already a full URL, add cache parameter
+                                artist.photo_path = `${artist.photo_path}?t=${nocache}`;
+                            }
+                        } else {
+                            artist.photo_path = "/images/default-artist.jpg"; // Changed to absolute path
+                        }
+                        return artist;
+                    });
+                    this.artists = processedArtists;
+                    console.log('Processed artists with fixed photo paths:', this.artists);
                     this.loading.artists = false;
                     if (this.user.role === 'artist') {
-                        this.fetchTattoos(); // Ensure artist tattoos are filtered after artists load
+                        this.fetchTattoos();
                     }
                 })
                 .catch(error => {
@@ -78,8 +101,8 @@ const app = createApp({
                 });
         },
         fetchTattoos() {
-            if (!this.user) return; // Make sure user is loaded before fetching
-            
+            if (!this.user) return;
+        
             this.loading.tattoos = true;
             this.error.tattoos = null;
             fetch(`${API_BASE_URL}/api/tattoos`, { headers: authService.getAuthHeader() })
@@ -89,13 +112,20 @@ const app = createApp({
                 })
                 .then(data => {
                     console.log('Fetched tattoos:', data);
-                    this.tattoos = data.data || [];
+                    const tattoosData = data.data || [];
+                    // Process tattoo file paths
+                    this.tattoos = tattoosData.map(tattoo => ({
+                        ...tattoo,
+                        file_path: tattoo.file_path ?
+                            `${API_BASE_URL}/storage/tattoos/${tattoo.file_path.split('/').pop()}` :
+                            "/images/default-tattoo.jpg"
+                    }));
                     if (this.user.role === 'artist') {
                         this.filteredTattoos = this.tattoos.filter(t => t.artist_id === this.user.id);
                         this.recentTattoos = this.filteredTattoos
                             .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
                             .slice(0, 5);
-                        this.tattooForm.artist_id = this.user.id; // Lock artist_id for artists
+                        this.tattooForm.artist_id = this.user.id;
                     } else {
                         this.filteredTattoos = [...this.tattoos];
                         this.recentTattoos = [...this.tattoos]
@@ -114,8 +144,20 @@ const app = createApp({
             this.artistForm = { name: '', bio: '', photo: null, photoPreview: null };
         },
         editArtist(artist) {
-            this.editingArtist = artist;
-            this.artistForm = { name: artist.name, bio: artist.bio || '', photo: null, photoPreview: artist.photo_path };
+            console.log('Editing artist:', artist);
+            
+            // Make a deep copy to prevent reference issues
+            this.editingArtist = JSON.parse(JSON.stringify(artist));
+            
+            // Ensure we have the correct data, with fallbacks for nulls
+            this.artistForm = { 
+                name: artist.name || '', 
+                bio: artist.bio || '', 
+                photo: null, // No new photo yet
+                photoPreview: artist.photo_path || null // Keep existing photo
+            };
+            
+            console.log('Artist form populated:', this.artistForm);
             this.showArtistForm = true;
         },
         closeArtistForm() {
@@ -123,40 +165,100 @@ const app = createApp({
             this.editingArtist = null;
             this.resetArtistForm();
         },
-        handleArtistPhotoUpload(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            this.artistForm.photo = file;
-            const reader = new FileReader();
-            reader.onload = () => this.artistForm.photoPreview = reader.result;
-            reader.readAsDataURL(file);
+        handleArtistPhotoUpload(event) {
+            const file = event.target.files[0];
+            console.log('Selected artist photo:', file);
+            
+            if (file) {
+                // Validate file type
+                const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+                if (!validTypes.includes(file.type)) {
+                    alert('Please select a valid image file (JPEG, PNG, or GIF)');
+                    event.target.value = ''; // Clear the input
+                    return;
+                }
+                
+                // Store the file object for later upload
+                this.artistForm.photo = file;
+                
+                // Create a preview URL
+                this.artistForm.photoPreview = URL.createObjectURL(file);
+                console.log('Created preview URL:', this.artistForm.photoPreview);
+            }
         },
         async saveArtist() {
+            console.log('Saving artist with form data:', this.artistForm);
+            if (!this.artistForm.name.trim()) {
+                alert('Artist name is required');
+                return;
+            }
             this.saving = true;
             const formData = new FormData();
-            formData.append('name', this.artistForm.name);
-            formData.append('bio', this.artistForm.bio);
-            if (this.artistForm.photo) formData.append('photo', this.artistForm.photo);
+            formData.append('name', this.artistForm.name.trim());
+            formData.append('bio', this.artistForm.bio.trim());
             
+            // Include photo if a new one was selected
+            if (this.artistForm.photo) {
+                formData.append('photo', this.artistForm.photo);
+                console.log('Uploading new photo:', this.artistForm.photo.name);
+            }
+            
+            // If we're editing, use method spoofing
             const url = this.editingArtist 
                 ? `${API_BASE_URL}/api/artists/${this.editingArtist.artist_id}` 
                 : `${API_BASE_URL}/api/artists`;
             
-            const method = this.editingArtist ? 'PUT' : 'POST';
+            // For editing, we'll use POST with _method=PUT to avoid issues with FormData and PUT requests
+            const method = this.editingArtist ? 'POST' : 'POST';
+            if (this.editingArtist) {
+                formData.append('_method', 'PUT');
+            }
+            
+            // Log FormData contents
+            console.log(`Making ${method} request to ${url}`);
+            for (let [key, value] of formData.entries()) {
+                console.log(`${key}:`, value);
+            }
             
             try {
                 const response = await fetch(url, {
                     method,
-                    headers: authService.getAuthHeader(),
+                    headers: {
+                        'Authorization': authService.getAuthHeader().Authorization
+                        // Note: Don't set Content-Type with FormData as the browser will set it with the boundary
+                    },
                     body: formData
                 });
-                if (!response.ok) throw new Error('Failed to save artist');
+                
+                // Check response status
+                console.log('Response status:', response.status);
+                
+                // Get the response text
+                const responseText = await response.text();
+                console.log('Server response:', responseText);
+                
+                // Try to parse it as JSON if possible
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                    console.log('Parsed response data:', data);
+                } catch (e) {
+                    console.log('Response was not valid JSON');
+                }
+                
+                if (!response.ok) {
+                    throw new Error(`Server returned ${response.status}: ${responseText}`);
+                }
+                
+                console.log('Artist saved successfully');
                 this.saving = false;
                 this.closeArtistForm();
+                
+                // Force refresh of artists data
                 this.fetchArtists();
             } catch (error) {
                 console.error('Error saving artist:', error);
-                alert('Failed to save artist. Please try again.');
+                alert('Failed to save artist. Check console for details.');
                 this.saving = false;
             }
         },
@@ -227,22 +329,46 @@ const app = createApp({
             formData.append('description', this.tattooForm.description);
             formData.append('artist_id', this.tattooForm.artist_id);
             formData.append('featured', this.tattooForm.featured ? '1' : '0');
-            if (this.tattooForm.image) formData.append('file_path', this.tattooForm.image);
-            const url = this.editingTattoo ? `${API_BASE_URL}/api/tattoos/${this.editingTattoo.tattoo_id}` : `${API_BASE_URL}/api/tattoos`;
+            
+            // Include image or existing file_path
+            if (this.tattooForm.image) {
+                formData.append('file_path', this.tattooForm.image);
+                console.log('Uploading new image:', this.tattooForm.image.name);
+            } else if (this.editingTattoo && this.editingTattoo.file_path) {
+                formData.append('file_path', this.editingTattoo.file_path); // Keep existing path
+            }
+            
+            const url = this.editingTattoo 
+                ? `${API_BASE_URL}/api/tattoos/${this.editingTattoo.tattoo_id}` 
+                : `${API_BASE_URL}/api/tattoos`;
             const method = this.editingTattoo ? 'PUT' : 'POST';
+            
+            // Log FormData contents
+            console.log(`Making ${method} request to ${url}`);
+            for (let [key, value] of formData.entries()) {
+                console.log(`${key}:`, value);
+            }
+            
             try {
                 const response = await fetch(url, {
                     method,
                     headers: authService.getAuthHeader(),
                     body: formData
                 });
-                if (!response.ok) throw new Error('Failed to save tattoo');
+                
+                const responseText = await response.text();
+                console.log('Server response:', response.status, responseText);
+                
+                if (!response.ok) {
+                    throw new Error(`Server returned ${response.status}: ${responseText}`);
+                }
+                
                 this.saving = false;
                 this.closeTattooForm();
                 this.fetchTattoos();
             } catch (error) {
                 console.error('Error saving tattoo:', error);
-                alert('Failed to save tattoo. Please try again.');
+                alert('Failed to save tattoo. Check console for details.');
                 this.saving = false;
             }
         },
@@ -271,7 +397,12 @@ const app = createApp({
             }
         },
         getArtistName(artistId) {
-            const artist = this.artists.find(a => a.artist_id === artistId);
+            if (!artistId) return 'Unknown Artist';
+            
+            // Convert to number if it's a string
+            const id = typeof artistId === 'string' ? parseInt(artistId, 10) : artistId;
+            
+            const artist = this.artists.find(a => a.artist_id === id);
             return artist ? artist.name : 'Unknown Artist';
         },
         truncate(text, length) {

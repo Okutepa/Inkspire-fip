@@ -247,7 +247,7 @@ body {
             display: flex;
             flex-direction: column; // Mobile first - stacked layout
             gap: 2rem;
-            border-bottom: 1px solid black;
+            // border-bottom: 1px solid black;
             padding-bottom: 24px;
         }
 
@@ -263,7 +263,7 @@ body {
 
             img {
                 width: 100%;
-                height: 360px; // Set height for mobile
+                height: 340px; // Set height for mobile
                 object-fit: cover;
                 display: block;
             }
@@ -591,6 +591,18 @@ body {
                 flex: 1 1 50%; // Changed from 60% to 50%
             }
 
+            .artist-image {
+                position: relative;
+                border: 3px solid #0E76BC; // Blue border as in your design
+
+                img {
+                    width: 340px;
+                    height: 340px; // Set height for mobile
+                    object-fit: cover;
+                    display: block;
+                }
+            }
+
             .artist-details {
                 flex-direction: column;
             }
@@ -605,7 +617,7 @@ body {
 
                     .work-item {
                         width: 340px; // Fixed width for desktop
-                        height: 100%;
+                        height: 340px;
                     }
                 }
             }
