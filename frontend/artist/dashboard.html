@@ -44,6 +44,12 @@
                             </a>
                         </li>
                         <li>
+                            <a href="#" @click.prevent="activePanel = 'profile'"
+                                :class="{ active: activePanel === 'profile' }">
+                                My Profile
+                            </a>
+                        </li>
+                        <li>
                             <a href="#" @click.prevent="activePanel = 'tattoos'"
                                 :class="{ active: activePanel === 'tattoos' }">
                                 My Tattoos
@@ -61,6 +67,10 @@
                                 <h3>My Tattoos</h3>
                                 <p class="stat-value">{{ filteredTattoos.length }}</p>
                             </div>
+                            <div class="stat-card">
+                                <h3>Profile Completion</h3>
+                                <p class="stat-value">{{ profileCompletionPercentage }}%</p>
+                            </div>
                         </div>
                         <div class="recent-activity">
                             <h2>Recent Activity</h2>
@@ -69,8 +79,98 @@
                                     :key="tattoo.tattoo_id">
                                     Added tattoo "<span>{{ tattoo.title }}</span>"
                                 </li>
-                                <li v-if="recentTattoos.length === 0">No recent activity</li>
+                                <li v-if="profileUpdated">Updated profile information</li>
+                                <li v-if="recentTattoos.length === 0 && !profileUpdated">No recent activity</li>
                             </ul>
+                        </div>
+                    </div>
+
+                    <!-- Profile Panel - NEW SECTION -->
+                    <div v-if="activePanel === 'profile'" class="panel">
+                        <div class="panel-header">
+                            <h1>My Profile</h1>
+                        </div>
+
+                        <div v-if="loading.profile" class="loading">Loading profile...</div>
+                        <div v-else-if="error.profile" class="error">{{ error.profile }}</div>
+                        <div v-else class="profile-form-container">
+                            <form @submit.prevent="saveProfile">
+                                <div class="form-group">
+                                    <label for="artist-name">Name</label>
+                                    <input type="text" id="artist-name" v-model="profileForm.name" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="artist-photo">Profile Photo</label>
+                                    <input type="file" id="artist-photo" @change="handleProfilePhotoUpload">
+                                    <div v-if="profileForm.photoPreview || user.photo_path" class="preview-image">
+                                        <img :src="profileForm.photoPreview || user.photo_path" alt="Profile preview">
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="artist-bio">Bio</label>
+                                    <textarea id="artist-bio" v-model="profileForm.bio" rows="6"
+                                        placeholder="Tell clients about yourself, your journey, and your passion for tattoo art..."></textarea>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="artist-experience">Years of Experience</label>
+                                    <input type="number" id="artist-experience" v-model="profileForm.experience" min="0"
+                                        max="100">
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Specialties</label>
+                                    <div class="specialties-container">
+                                        <div class="specialty-input-group">
+                                            <input type="text" v-model="newSpecialty" placeholder="Add a specialty..."
+                                                @keyup.enter="addSpecialty">
+                                            <button type="button" @click="addSpecialty"
+                                                class="add-specialty-btn">Add</button>
+                                        </div>
+                                        <div class="specialties-list">
+                                            <div v-for="(specialty, index) in profileForm.specialties" :key="index"
+                                                class="specialty-tag">
+                                                {{ specialty }}
+                                                <button type="button" @click="removeSpecialty(index)"
+                                                    class="remove-specialty-btn">×</button>
+                                            </div>
+                                            <div v-if="profileForm.specialties.length === 0" class="no-specialties">
+                                                No specialties added yet
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Social Media</label>
+                                    <div class="social-media-container">
+                                        <div class="form-group">
+                                            <label for="instagram">Instagram</label>
+                                            <input type="text" id="instagram" v-model="profileForm.social.instagram"
+                                                placeholder="@yourusername">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="twitter">Twitter</label>
+                                            <input type="text" id="twitter" v-model="profileForm.social.twitter"
+                                                placeholder="@yourusername">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="facebook">Facebook</label>
+                                            <input type="text" id="facebook" v-model="profileForm.social.facebook"
+                                                placeholder="username or page name">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-actions">
+                                    <button type="submit" class="save-btn" :disabled="savingProfile">
+                                        <span v-if="savingProfile">Saving...</span>
+                                        <span v-else>Save Profile</span>
+                                    </button>
+                                </div>
+                            </form>
                         </div>
                     </div>
 
@@ -101,6 +201,24 @@
                                             <label for="tattoo-description">Description</label>
                                             <textarea id="tattoo-description" v-model="tattooForm.description"
                                                 rows="4"></textarea>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="tattoo-style">Style</label>
+                                            <select id="tattoo-style" v-model="tattooForm.style">
+                                                <option value="">Select a style</option>
+                                                <option value="Minimal">Minimal</option>
+                                                <option value="Fine Line">Fine Line</option>
+                                                <option value="Geometric">Geometric</option>
+                                                <option value="Traditional">Traditional</option>
+                                                <option value="Watercolor">Watercolor</option>
+                                                <option value="Blackwork">Blackwork</option>
+                                                <option value="Realism">Realism</option>
+                                                <option value="Japanese">Japanese</option>
+                                                <option value="Neo-Traditional">Neo-Traditional</option>
+                                                <option value="Tribal">Tribal</option>
+                                                <option value="New School">New School</option>
+                                                <option value="Other">Other</option>
+                                            </select>
                                         </div>
                                         <div class="form-group">
                                             <label for="tattoo-image">Image</label>
@@ -138,6 +256,23 @@
                                     <input type="text" v-model="tattooSearch" placeholder="Search by title..."
                                         @input="filterTattoos">
                                 </div>
+                                <div class="style-filter">
+                                    <select v-model="styleFilter" @change="filterTattoos">
+                                        <option value="">All Styles</option>
+                                        <option value="Minimal">Minimal</option>
+                                        <option value="Fine Line">Fine Line</option>
+                                        <option value="Geometric">Geometric</option>
+                                        <option value="Traditional">Traditional</option>
+                                        <option value="Watercolor">Watercolor</option>
+                                        <option value="Blackwork">Blackwork</option>
+                                        <option value="Realism">Realism</option>
+                                        <option value="Japanese">Japanese</option>
+                                        <option value="Neo-Traditional">Neo-Traditional</option>
+                                        <option value="Tribal">Tribal</option>
+                                        <option value="New School">New School</option>
+                                        <option value="Other">Other</option>
+                                    </select>
+                                </div>
                             </div>
 
                             <table class="data-table">
@@ -146,6 +281,7 @@
                                         <th>ID</th>
                                         <th>Image</th>
                                         <th>Title</th>
+                                        <th>Style</th>
                                         <th>Featured</th>
                                         <th>Actions</th>
                                     </tr>
@@ -157,6 +293,7 @@
                                             <img :src="tattoo.file_path" alt="Tattoo" class="thumbnail">
                                         </td>
                                         <td>{{ tattoo.title }}</td>
+                                        <td>{{ tattoo.style || 'Not specified' }}</td>
                                         <td>
                                             <span :class="tattoo.featured ? 'featured-badge' : 'not-featured-badge'">
                                                 {{ tattoo.featured ? 'Yes' : 'No' }}
@@ -169,7 +306,7 @@
                                         </td>
                                     </tr>
                                     <tr v-if="filteredTattoos.length === 0">
-                                        <td colspan="5" class="empty-table">No tattoos found. Add your first tattoo!
+                                        <td colspan="6" class="empty-table">No tattoos found. Add your first tattoo!
                                         </td>
                                     </tr>
                                 </tbody>
@@ -192,6 +329,14 @@
                                         Delete</button>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- Success Notification -->
+                    <div v-if="notification.show" class="notification" :class="notification.type">
+                        <div class="notification-content">
+                            <p>{{ notification.message }}</p>
+                            <button @click="notification.show = false" class="close-notification">×</button>
                         </div>
                     </div>
                 </main>

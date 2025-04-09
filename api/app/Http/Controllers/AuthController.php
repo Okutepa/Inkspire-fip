@@ -31,7 +31,10 @@ class AuthController extends Controller
 
         $user->save();
 
-        return response()->json(['message' => 'User created successfully'], 201);
+        return response()->json([
+            'message' => 'User created successfully',
+            'user_id' => $user->user_id  // Include the user ID in the response
+        ], 201);
     }
 
     public function login(Request $request)

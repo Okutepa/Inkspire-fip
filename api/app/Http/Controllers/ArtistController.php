@@ -59,51 +59,80 @@ class ArtistController extends Controller
     public function store(Request $request)
     {
         try {
-            // Validate with custom messages
             $this->validate($request, [
                 'name' => 'required|string|max:255',
                 'bio' => 'required|string',
                 'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'specialties' => 'nullable|string',
+                'experience' => 'nullable|integer|min:0',
+                'social' => 'nullable|string',
+                'user_id' => 'required|exists:users,user_id', // Validate user_id
             ], [
                 'name.required' => 'The artist name is required.',
                 'bio.required' => 'The artist bio is required.',
                 'photo.image' => 'The uploaded file must be an image (JPEG, PNG, JPG, or GIF).',
                 'photo.mimes' => 'The image must be a JPEG, PNG, JPG, or GIF file.',
                 'photo.max' => 'The image size must not exceed 2MB.',
+                'experience.integer' => 'Years of experience must be a whole number.',
+                'experience.min' => 'Years of experience cannot be negative.',
+                'user_id.required' => 'A user ID is required.',
+                'user_id.exists' => 'The provided user ID does not exist.',
             ]);
-
-            // Create a new artist instance
+    
             $artist = new Artist();
             $artist->name = $request->input('name');
             $artist->bio = $request->input('bio');
-
-            // Handle photo upload if provided
+            $artist->user_id = $request->input('user_id'); // Set user_id
+    
+            if ($request->has('specialties')) {
+                $artist->specialties = $request->input('specialties');
+            }
+            if ($request->has('experience')) {
+                $artist->experience = $request->input('experience');
+            }
+            if ($request->has('social')) {
+                $artist->social = $request->input('social');
+            }
+    
             if ($request->hasFile('photo')) {
                 $photo = $request->file('photo');
                 $filename = time() . '_' . $photo->getClientOriginalName();
                 $path = $photo->storeAs('artists', $filename, 'public');
                 $artist->photo_path = $path;
             }
-
+    
             $artist->save();
-
-            // Return response with photo_url
+    
             return response()->json([
-                'id' => $artist->id,
+                'id' => $artist->artist_id,
                 'name' => $artist->name,
                 'bio' => $artist->bio,
                 'photo_path' => $artist->photo_path,
                 'photo_url' => $artist->photo_path ? Storage::url($artist->photo_path) : null,
+                'specialties' => $artist->specialties,
+                'experience' => $artist->experience,
+                'social' => $artist->social,
+                'user_id' => $artist->user_id,
             ], 201);
         } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json(['error' => 'Validation failed', 'details' => $e->errors()], 422);
+            Log::error('Validation failed', [
+                'errors' => $e->errors(),
+                'request_data' => $request->except('photo')
+            ]);
+            return response()->json([
+                'error' => 'Validation failed',
+                'details' => $e->errors()
+            ], 422);
         } catch (\Exception $e) {
             Log::error('Error creating artist', [
                 'message' => $e->getMessage(),
-                'request_data' => $request->except('photo'), // Exclude photo to avoid logging large data
-                'stack' => $e->getTraceAsString(),
+                'request_data' => $request->except('photo'),
+                'stack' => $e->getTraceAsString()
             ]);
-            return response()->json(['error' => 'Failed to create artist'], 500);
+            return response()->json([
+                'error' => 'Failed to create artist',
+                'details' => $e->getMessage()
+            ], 500);
         }
     }
 
@@ -121,7 +150,7 @@ class ArtistController extends Controller
             Log::info('Artist update request received', [
                 'id' => $id,
                 'has_file' => $request->hasFile('photo'),
-                'all_inputs' => $request->all()
+                'all_inputs' => $request->except(['photo']) // Don't log the entire photo data
             ]);
 
             // Validate with custom messages
@@ -129,12 +158,17 @@ class ArtistController extends Controller
                 'name' => 'sometimes|required|string|max:255',
                 'bio' => 'sometimes|required|string',
                 'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+                'specialties' => 'nullable|string',
+                'experience' => 'nullable|integer|min:0',
+                'social' => 'nullable|string',
             ], [
                 'name.required' => 'The artist name is required.',
                 'bio.required' => 'The artist bio is required.',
                 'photo.image' => 'The uploaded file must be an image (JPEG, PNG, JPG, or GIF).',
                 'photo.mimes' => 'The image must be a JPEG, PNG, JPG, or GIF file.',
                 'photo.max' => 'The image size must not exceed 2MB.',
+                'experience.integer' => 'Years of experience must be a whole number.',
+                'experience.min' => 'Years of experience cannot be negative.',
             ]);
 
             // Find the artist
@@ -151,6 +185,24 @@ class ArtistController extends Controller
             if ($request->has('bio')) {
                 $artist->bio = $request->input('bio');
                 Log::info('Updating artist bio', ['new_bio' => $request->input('bio')]);
+            }
+            
+            // Update specialties if provided
+            if ($request->has('specialties')) {
+                $artist->specialties = $request->input('specialties');
+                Log::info('Updating artist specialties', ['new_specialties' => $request->input('specialties')]);
+            }
+            
+            // Update experience if provided
+            if ($request->has('experience')) {
+                $artist->experience = $request->input('experience');
+                Log::info('Updating artist experience', ['new_experience' => $request->input('experience')]);
+            }
+            
+            // Update social media info if provided
+            if ($request->has('social')) {
+                $artist->social = $request->input('social');
+                Log::info('Updating artist social media', ['new_social' => $request->input('social')]);
             }
 
             // Handle new photo upload if provided
@@ -176,11 +228,14 @@ class ArtistController extends Controller
 
             // Return the updated artist with photo URL
             return response()->json([
-                'id' => $artist->id,
+                'id' => $artist->artist_id, // Use artist_id as per your model
                 'name' => $artist->name,
                 'bio' => $artist->bio,
                 'photo_path' => $artist->photo_path,
                 'photo_url' => $artist->photo_path ? Storage::url($artist->photo_path) : null,
+                'specialties' => $artist->specialties,
+                'experience' => $artist->experience,
+                'social' => $artist->social,
                 'message' => 'Artist updated successfully'
             ], 200);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
@@ -224,6 +279,28 @@ class ArtistController extends Controller
                 'stack' => $e->getTraceAsString(),
             ]);
             return response()->json(['error' => 'Failed to delete artist'], 500);
+        }
+    }
+    
+    /**
+     * Get all tattoos for a specific artist.
+     *
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getTattoos($id)
+    {
+        try {
+            $artist = Artist::findOrFail($id);
+            $tattoos = $artist->tattoos;
+            return response()->json($tattoos);
+        } catch (\Exception $e) {
+            Log::error('Error fetching artist tattoos', [
+                'id' => $id,
+                'message' => $e->getMessage(),
+                'stack' => $e->getTraceAsString(),
+            ]);
+            return response()->json(['error' => 'Failed to fetch artist tattoos'], 500);
         }
     }
 }

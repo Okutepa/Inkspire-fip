@@ -17,7 +17,7 @@ const app = createApp({
             saving: false,
             showArtistForm: false,
             editingArtist: null,
-            artistForm: { name: '', bio: '', photo: null, photoPreview: null },
+            artistForm: { name: '', bio: '', photo: null, photoPreview: null, email: '', password: '' }, // Already includes email and password
             showTattooForm: false,
             editingTattoo: null,
             tattooForm: { title: '', description: '', artist_id: '', image: null, imagePreview: null, featured: false },
@@ -55,15 +55,11 @@ const app = createApp({
         },
         fetchArtists() {
             if (!this.user) return;
-        
             this.loading.artists = true;
             this.error.artists = null;
-            
-            // Add a timestamp to avoid browser caching
             const nocache = new Date().getTime();
             fetch(`${API_BASE_URL}/api/artists?nocache=${nocache}`, { 
                 headers: authService.getAuthHeader(),
-                // Using GET method but ensuring fresh data with nocache parameter
                 method: 'GET'
             })
                 .then(response => {
@@ -74,16 +70,14 @@ const app = createApp({
                     console.log('Fetched artists:', data);
                     const processedArtists = (data.data || []).map(artist => {
                         if (artist.photo_path) {
-                            // Add a cache-busting parameter to image URLs
                             if (!artist.photo_path.startsWith('http')) {
                                 const filename = artist.photo_path.split('/').pop();
                                 artist.photo_path = `${API_BASE_URL}/storage/artists/${filename}?t=${nocache}`;
                             } else {
-                                // If it's already a full URL, add cache parameter
                                 artist.photo_path = `${artist.photo_path}?t=${nocache}`;
                             }
                         } else {
-                            artist.photo_path = "/images/default-artist.jpg"; // Changed to absolute path
+                            artist.photo_path = "/images/default-artist.jpg";
                         }
                         return artist;
                     });
@@ -102,7 +96,6 @@ const app = createApp({
         },
         fetchTattoos() {
             if (!this.user) return;
-        
             this.loading.tattoos = true;
             this.error.tattoos = null;
             fetch(`${API_BASE_URL}/api/tattoos`, { headers: authService.getAuthHeader() })
@@ -113,7 +106,6 @@ const app = createApp({
                 .then(data => {
                     console.log('Fetched tattoos:', data);
                     const tattoosData = data.data || [];
-                    // Process tattoo file paths
                     this.tattoos = tattoosData.map(tattoo => ({
                         ...tattoo,
                         file_path: tattoo.file_path ?
@@ -141,22 +133,19 @@ const app = createApp({
                 });
         },
         resetArtistForm() {
-            this.artistForm = { name: '', bio: '', photo: null, photoPreview: null };
+            this.artistForm = { name: '', bio: '', photo: null, photoPreview: null, email: '', password: '' };
         },
         editArtist(artist) {
             console.log('Editing artist:', artist);
-            
-            // Make a deep copy to prevent reference issues
             this.editingArtist = JSON.parse(JSON.stringify(artist));
-            
-            // Ensure we have the correct data, with fallbacks for nulls
             this.artistForm = { 
                 name: artist.name || '', 
                 bio: artist.bio || '', 
-                photo: null, // No new photo yet
-                photoPreview: artist.photo_path || null // Keep existing photo
+                photo: null,
+                photoPreview: artist.photo_path || null,
+                email: '', // Email not editable here
+                password: '' // Password not editable here
             };
-            
             console.log('Artist form populated:', this.artistForm);
             this.showArtistForm = true;
         },
@@ -168,20 +157,14 @@ const app = createApp({
         handleArtistPhotoUpload(event) {
             const file = event.target.files[0];
             console.log('Selected artist photo:', file);
-            
             if (file) {
-                // Validate file type
                 const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
                 if (!validTypes.includes(file.type)) {
                     alert('Please select a valid image file (JPEG, PNG, or GIF)');
-                    event.target.value = ''; // Clear the input
+                    event.target.value = '';
                     return;
                 }
-                
-                // Store the file object for later upload
                 this.artistForm.photo = file;
-                
-                // Create a preview URL
                 this.artistForm.photoPreview = URL.createObjectURL(file);
                 console.log('Created preview URL:', this.artistForm.photoPreview);
             }
@@ -192,69 +175,111 @@ const app = createApp({
                 alert('Artist name is required');
                 return;
             }
+            if (!this.editingArtist && (!this.artistForm.email.trim() || !this.artistForm.password.trim())) {
+                alert('Email and password are required for new artists');
+                return;
+            }
             this.saving = true;
-            const formData = new FormData();
-            formData.append('name', this.artistForm.name.trim());
-            formData.append('bio', this.artistForm.bio.trim());
-            
-            // Include photo if a new one was selected
-            if (this.artistForm.photo) {
-                formData.append('photo', this.artistForm.photo);
-                console.log('Uploading new photo:', this.artistForm.photo.name);
-            }
-            
-            // If we're editing, use method spoofing
-            const url = this.editingArtist 
-                ? `${API_BASE_URL}/api/artists/${this.editingArtist.artist_id}` 
-                : `${API_BASE_URL}/api/artists`;
-            
-            // For editing, we'll use POST with _method=PUT to avoid issues with FormData and PUT requests
-            const method = this.editingArtist ? 'POST' : 'POST';
-            if (this.editingArtist) {
-                formData.append('_method', 'PUT');
-            }
-            
-            // Log FormData contents
-            console.log(`Making ${method} request to ${url}`);
-            for (let [key, value] of formData.entries()) {
-                console.log(`${key}:`, value);
-            }
             
             try {
+                let userId;
+                if (!this.editingArtist) {
+                    // Create a new user account for a new artist
+                    const userData = {
+                        name: this.artistForm.name,
+                        email: this.artistForm.email,
+                        password: this.artistForm.password,
+                        role: 'artist'
+                    };
+                    
+                    // First try to create the user
+                    let userResponse = await fetch(`${API_BASE_URL}/api/register`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': authService.getAuthHeader().Authorization
+                        },
+                        body: JSON.stringify(userData)
+                    });
+                    
+                    if (userResponse.ok) {
+                        // User created successfully
+                        const newUser = await userResponse.json();
+                        console.log('Complete registration response:', newUser);
+                        
+                        // Try different possible locations for the user ID
+                        userId = newUser.user_id || // Try user_id at top level
+                               (newUser.data && newUser.data.user_id) || // Try data.user_id
+                               newUser.id || // Try id at top level
+                               (newUser.data && newUser.data.id); // Try data.id
+                        
+                        console.log('New user created with ID:', userId);
+                        
+                        if (!userId) {
+                            console.error('Could not find user ID in registration response:', newUser);
+                            throw new Error('User was created but could not determine user ID');
+                        }
+                    } else {
+                        // Check if the error is "email already taken"
+                        const errorResponse = await userResponse.json();
+                        console.log('User creation error:', errorResponse);
+                        
+                        if (errorResponse.email && errorResponse.email.includes('already been taken')) {
+                            // Email exists, try to get the user ID by email
+                            console.log('Email already exists, fetching existing user');
+                            const findUserResponse = await fetch(`${API_BASE_URL}/api/users/by-email?email=${encodeURIComponent(this.artistForm.email)}`, {
+                                headers: authService.getAuthHeader()
+                            });
+                            
+                            if (findUserResponse.ok) {
+                                const existingUser = await findUserResponse.json();
+                                userId = existingUser.id || existingUser.user_id;
+                                console.log('Found existing user with ID:', userId);
+                            } else {
+                                throw new Error('Email already in use but unable to find user');
+                            }
+                        } else {
+                            throw new Error(`Failed to create user account: ${JSON.stringify(errorResponse)}`);
+                        }
+                    }
+                } else {
+                    // For editing, keep the existing user_id
+                    userId = this.editingArtist.user_id;
+                    console.log('Using existing user_id for edit:', userId);
+                }
+        
+                // Now create or update the artist with the user ID
+                const formData = new FormData();
+                formData.append('name', this.artistForm.name.trim());
+                formData.append('bio', this.artistForm.bio.trim());
+                formData.append('user_id', userId); // Link artist to user
+                if (this.artistForm.photo) {
+                    formData.append('photo', this.artistForm.photo);
+                }
+        
+                const url = this.editingArtist 
+                    ? `${API_BASE_URL}/api/artists/${this.editingArtist.artist_id}` 
+                    : `${API_BASE_URL}/api/artists`;
+                const method = this.editingArtist ? 'POST' : 'POST';
+                if (this.editingArtist) formData.append('_method', 'PUT');
+        
+                console.log(`Making ${method} request to ${url}`);
+                for (let [key, value] of formData.entries()) console.log(`${key}:`, value);
+        
                 const response = await fetch(url, {
                     method,
                     headers: {
                         'Authorization': authService.getAuthHeader().Authorization
-                        // Note: Don't set Content-Type with FormData as the browser will set it with the boundary
                     },
                     body: formData
                 });
-                
-                // Check response status
-                console.log('Response status:', response.status);
-                
-                // Get the response text
                 const responseText = await response.text();
                 console.log('Server response:', responseText);
-                
-                // Try to parse it as JSON if possible
-                let data;
-                try {
-                    data = JSON.parse(responseText);
-                    console.log('Parsed response data:', data);
-                } catch (e) {
-                    console.log('Response was not valid JSON');
-                }
-                
-                if (!response.ok) {
-                    throw new Error(`Server returned ${response.status}: ${responseText}`);
-                }
-                
+                if (!response.ok) throw new Error(`Server returned ${response.status}: ${responseText}`);
+        
                 console.log('Artist saved successfully');
                 this.saving = false;
                 this.closeArtistForm();
-                
-                // Force refresh of artists data
                 this.fetchArtists();
             } catch (error) {
                 console.error('Error saving artist:', error);
@@ -329,40 +354,24 @@ const app = createApp({
             formData.append('description', this.tattooForm.description);
             formData.append('artist_id', this.tattooForm.artist_id);
             formData.append('featured', this.tattooForm.featured ? '1' : '0');
-            
-            // Include image or existing file_path
             if (this.tattooForm.image) {
                 formData.append('file_path', this.tattooForm.image);
-                console.log('Uploading new image:', this.tattooForm.image.name);
             } else if (this.editingTattoo && this.editingTattoo.file_path) {
-                formData.append('file_path', this.editingTattoo.file_path); // Keep existing path
+                formData.append('file_path', this.editingTattoo.file_path);
             }
-            
             const url = this.editingTattoo 
                 ? `${API_BASE_URL}/api/tattoos/${this.editingTattoo.tattoo_id}` 
                 : `${API_BASE_URL}/api/tattoos`;
             const method = this.editingTattoo ? 'PUT' : 'POST';
-            
-            // Log FormData contents
-            console.log(`Making ${method} request to ${url}`);
-            for (let [key, value] of formData.entries()) {
-                console.log(`${key}:`, value);
-            }
-            
             try {
                 const response = await fetch(url, {
                     method,
                     headers: authService.getAuthHeader(),
                     body: formData
                 });
-                
                 const responseText = await response.text();
                 console.log('Server response:', response.status, responseText);
-                
-                if (!response.ok) {
-                    throw new Error(`Server returned ${response.status}: ${responseText}`);
-                }
-                
+                if (!response.ok) throw new Error(`Server returned ${response.status}: ${responseText}`);
                 this.saving = false;
                 this.closeTattooForm();
                 this.fetchTattoos();
@@ -398,10 +407,7 @@ const app = createApp({
         },
         getArtistName(artistId) {
             if (!artistId) return 'Unknown Artist';
-            
-            // Convert to number if it's a string
             const id = typeof artistId === 'string' ? parseInt(artistId, 10) : artistId;
-            
             const artist = this.artists.find(a => a.artist_id === id);
             return artist ? artist.name : 'Unknown Artist';
         },
@@ -424,7 +430,6 @@ const app = createApp({
     },
     mounted() {
         console.log("Vue app mounted");
-        // First check authentication, then fetch data if auth is successful
         if (this.checkAuth()) {
             console.log("Auth check passed, fetching data");
             this.fetchArtists();

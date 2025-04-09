@@ -11,8 +11,14 @@ const app = createApp({
             tattoos: [],
             filteredTattoos: [],
             recentTattoos: [],
-            loading: { tattoos: false },
-            error: { tattoos: null },
+            loading: { 
+                tattoos: false, 
+                profile: false
+            },
+            error: { 
+                tattoos: null, 
+                profile: null
+            },
             saving: false,
             showTattooForm: false,
             editingTattoo: null,
@@ -20,6 +26,7 @@ const app = createApp({
                 title: '', 
                 description: '', 
                 artist_id: '', 
+                style: '',
                 image: null, 
                 imagePreview: null, 
                 featured: false 
@@ -30,8 +37,46 @@ const app = createApp({
                 title: '', 
                 message: '', 
                 onConfirm: null 
-            }
+            },
+            profileForm: {
+                name: '',
+                bio: '',
+                experience: 0,
+                specialties: [],
+                photo: null,
+                photoPreview: null,
+                social: {
+                    instagram: '',
+                    twitter: '',
+                    facebook: ''
+                }
+            },
+            newSpecialty: '',
+            savingProfile: false,
+            profileUpdated: false,
+            notification: {
+                show: false,
+                type: 'success',
+                message: '',
+                timeout: null
+            },
+            styleFilter: ''
         };
+    },
+    computed: {
+        profileCompletionPercentage() {
+            let total = 0;
+            let completed = 0;
+            
+            total++; if (this.user.name) completed++;
+            total++; if (this.user.photo_path) completed++;
+            total++; if (this.user.bio) completed++;
+            total++; if (this.user.experience > 0) completed++;
+            total++; if (this.user.specialties && this.user.specialties.length > 0) completed++;
+            total++; if (this.user.social && (this.user.social.instagram || this.user.social.twitter || this.user.social.facebook)) completed++;
+            
+            return Math.round((completed / total) * 100);
+        }
     },
     methods: {
         checkAuth() {
@@ -60,13 +105,221 @@ const app = createApp({
             await authService.logout();
             window.location.href = '../login.html';
         },
+        // Profile Management
+        loadProfileData() {
+            this.loading.profile = true;
+            this.error.profile = null;
+            
+            // Updated API endpoint to fetch artist profile for the authenticated user
+            const apiUrl = `${API_BASE_URL}/api/artist/me`;
+            
+            fetch(apiUrl, { 
+                headers: authService.getAuthHeader(),
+                method: 'GET'
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        if (response.status === 404) {
+                            this.error.profile = 'Artist profile not found. Please contact an admin to create your profile.';
+                            return null; // Allow handling of no profile case
+                        }
+                        throw new Error('Failed to load profile data');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    this.loading.profile = false;
+                    
+                    if (data) {
+                        console.log('Fetched profile data:', data);
+                        
+                        // Process photo path with cache busting
+                        const nocache = new Date().getTime();
+                        let photoPath = data.photo_path;
+                        if (photoPath && !photoPath.startsWith('http')) {
+                            const filename = photoPath.split('/').pop();
+                            photoPath = `${API_BASE_URL}/storage/artists/${filename}?t=${nocache}`;
+                        } else if (photoPath) {
+                            photoPath = `${photoPath}?t=${nocache}`;
+                        }
+                        
+                        // Update user data with fetched profile
+                        this.user = { 
+                            ...this.user, 
+                            ...data,
+                            photo_path: photoPath || this.user.photo_path
+                        };
+                        
+                        // Parse specialties
+                        try {
+                            this.user.specialties = data.specialties && typeof data.specialties === 'string' 
+                                ? JSON.parse(data.specialties) 
+                                : data.specialties || [];
+                        } catch (e) {
+                            console.error('Error parsing specialties:', e);
+                            this.user.specialties = [];
+                        }
+                        
+                        // Parse social media
+                        try {
+                            this.user.social = data.social && typeof data.social === 'string' 
+                                ? JSON.parse(data.social) 
+                                : data.social || { instagram: '', twitter: '', facebook: '' };
+                        } catch (e) {
+                            console.error('Error parsing social data:', e);
+                            this.user.social = { instagram: '', twitter: '', facebook: '' };
+                        }
+                        
+                        // Update local storage
+                        authService.updateUserData(this.user);
+                        
+                        // Populate profile form
+                        this.profileForm.name = this.user.name || '';
+                        this.profileForm.bio = this.user.bio || '';
+                        this.profileForm.experience = this.user.experience || 0;
+                        this.profileForm.specialties = this.user.specialties || [];
+                        this.profileForm.social = this.user.social || {
+                            instagram: '',
+                            twitter: '',
+                            facebook: ''
+                        };
+                    } else {
+                        // Fallback if no profile exists
+                        this.profileForm.name = this.user.name || '';
+                        this.profileForm.bio = '';
+                        this.profileForm.experience = 0;
+                        this.profileForm.specialties = [];
+                        this.profileForm.social = { instagram: '', twitter: '', facebook: '' };
+                    }
+                })
+                .catch(err => {
+                    console.error('Error loading profile:', err);
+                    this.loading.profile = false;
+                    if (!this.error.profile) { // Only set if not already set (e.g., by 404)
+                        this.error.profile = 'Failed to load profile data. Please try again.';
+                    }
+                    
+                    // Fallback to existing user data
+                    this.profileForm.name = this.user.name || '';
+                    this.profileForm.bio = this.user.bio || '';
+                    this.profileForm.experience = this.user.experience || 0;
+                    this.profileForm.specialties = this.user.specialties || [];
+                    this.profileForm.social = this.user.social || {
+                        instagram: '',
+                        twitter: '',
+                        facebook: ''
+                    };
+                });
+        },
+        handleProfilePhotoUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
+            if (!validTypes.includes(file.type)) {
+                this.showNotification('error', 'Please select a valid image file (JPEG, PNG, or GIF)');
+                event.target.value = '';
+                return;
+            }
+            
+            this.profileForm.photo = file;
+            const reader = new FileReader();
+            reader.onload = e => this.profileForm.photoPreview = e.target.result;
+            reader.readAsDataURL(file);
+        },
+        addSpecialty() {
+            if (!this.newSpecialty.trim()) return;
+            if (!this.profileForm.specialties.includes(this.newSpecialty.trim())) {
+                this.profileForm.specialties.push(this.newSpecialty.trim());
+            }
+            this.newSpecialty = '';
+        },
+        removeSpecialty(index) {
+            this.profileForm.specialties.splice(index, 1);
+        },
+        async saveProfile() {
+            console.log('Saving profile with form data:', this.profileForm);
+            if (!this.profileForm.name.trim()) {
+                this.showNotification('error', 'Artist name is required');
+                return;
+            }
+            
+            this.savingProfile = true;
+            const formData = new FormData();
+            formData.append('name', this.profileForm.name.trim());
+            formData.append('bio', this.profileForm.bio.trim());
+            formData.append('experience', this.profileForm.experience || 0);
+            formData.append('specialties', JSON.stringify(this.profileForm.specialties));
+            formData.append('social', JSON.stringify(this.profileForm.social));
+            if (this.profileForm.photo) {
+                formData.append('photo', this.profileForm.photo);
+                console.log('Uploading new photo:', this.profileForm.photo.name);
+            }
+            
+            // Use /api/artist/me for updating the profile
+            const apiUrl = `${API_BASE_URL}/api/artist/me`;
+            formData.append('_method', 'PUT'); // Spoof PUT with POST for FormData
+            
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST', // Using POST with _method=PUT
+                    headers: {
+                        'Authorization': authService.getAuthHeader().Authorization
+                    },
+                    body: formData
+                });
+                
+                const responseText = await response.text();
+                console.log('Server response:', responseText);
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch (e) {
+                    console.log('Response was not valid JSON');
+                }
+                
+                if (!response.ok) {
+                    throw new Error(`Server returned ${response.status}: ${responseText}`);
+                }
+                
+                const updatedUser = { 
+                    ...this.user,
+                    name: this.profileForm.name,
+                    bio: this.profileForm.bio,
+                    experience: this.profileForm.experience,
+                    specialties: this.profileForm.specialties,
+                    social: this.profileForm.social
+                };
+                
+                if (this.profileForm.photoPreview && this.profileForm.photo) {
+                    updatedUser.photo_path = this.profileForm.photoPreview;
+                }
+                
+                this.user = updatedUser;
+                authService.updateUserData(updatedUser);
+                
+                this.savingProfile = false;
+                this.profileUpdated = true;
+                this.showNotification('success', 'Profile updated successfully');
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                this.showNotification('error', 'Failed to update profile. Please try again.');
+                this.savingProfile = false;
+            }
+        },
+        showNotification(type, message) {
+            if (this.notification.timeout) clearTimeout(this.notification.timeout);
+            this.notification = {
+                show: true,
+                type: type,
+                message: message,
+                timeout: setTimeout(() => this.notification.show = false, 5000)
+            };
+        },
         fetchTattoos() {
             if (!this.user) return;
-        
             this.loading.tattoos = true;
             this.error.tattoos = null;
-            
-            // Add a timestamp to avoid browser caching
             const nocache = new Date().getTime();
             fetch(`${API_BASE_URL}/api/tattoos?nocache=${nocache}`, { 
                 headers: authService.getAuthHeader(),
@@ -79,26 +332,17 @@ const app = createApp({
                 .then(data => {
                     console.log('Fetched tattoos:', data);
                     const tattoosData = data.data || [];
-                    
-                    // Process tattoo file paths
                     this.tattoos = tattoosData.map(tattoo => ({
                         ...tattoo,
                         file_path: tattoo.file_path ?
                             `${API_BASE_URL}/storage/tattoos/${tattoo.file_path.split('/').pop()}?t=${nocache}` :
                             "/images/default-tattoo.jpg"
                     }));
-                    
-                    // Filter tattoos to show only this artist's tattoos
                     this.filteredTattoos = this.tattoos.filter(t => t.artist_id === this.user.id);
-                    
-                    // Get recent tattoos for the dashboard
                     this.recentTattoos = [...this.filteredTattoos]
                         .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
                         .slice(0, 5);
-                    
-                    // Pre-set the artist_id in the form
                     this.tattooForm.artist_id = this.user.id;
-                    
                     this.loading.tattoos = false;
                 })
                 .catch(error => {
@@ -112,20 +356,20 @@ const app = createApp({
                 title: '', 
                 description: '', 
                 artist_id: this.user ? this.user.id : '', 
+                style: '',
                 image: null, 
                 imagePreview: null, 
                 featured: false 
             };
         },
         editTattoo(tattoo) {
-            // Verify this tattoo belongs to the current artist
             if (tattoo.artist_id !== this.user.id) return;
-            
             this.editingTattoo = tattoo;
             this.tattooForm = { 
                 title: tattoo.title, 
                 description: tattoo.description || '', 
-                artist_id: tattoo.artist_id, 
+                artist_id: tattoo.artist_id,
+                style: tattoo.style || '',
                 image: null, 
                 imagePreview: tattoo.file_path, 
                 featured: tattoo.featured || false 
@@ -140,15 +384,12 @@ const app = createApp({
         handleTattooImageUpload(e) {
             const file = e.target.files[0];
             if (!file) return;
-            
-            // Validate file type
             const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
             if (!validTypes.includes(file.type)) {
-                alert('Please select a valid image file (JPEG, PNG, or GIF)');
-                e.target.value = ''; // Clear the input
+                this.showNotification('error', 'Please select a valid image file (JPEG, PNG, or GIF)');
+                e.target.value = '';
                 return;
             }
-            
             this.tattooForm.image = file;
             const reader = new FileReader();
             reader.onload = () => this.tattooForm.imagePreview = reader.result;
@@ -157,39 +398,24 @@ const app = createApp({
         async saveTattoo() {
             console.log('Saving tattoo with form data:', this.tattooForm);
             if (!this.tattooForm.title.trim()) {
-                alert('Tattoo title is required');
+                this.showNotification('error', 'Tattoo title is required');
                 return;
             }
-            
             this.saving = true;
             const formData = new FormData();
             formData.append('title', this.tattooForm.title.trim());
             formData.append('description', this.tattooForm.description.trim());
-            formData.append('artist_id', this.user.id); // Always use current artist ID
+            formData.append('artist_id', this.user.id);
             formData.append('featured', this.tattooForm.featured ? '1' : '0');
-            
-            // Include image if provided
+            formData.append('style', this.tattooForm.style || '');
             if (this.tattooForm.image) {
                 formData.append('file_path', this.tattooForm.image);
-                console.log('Uploading new image:', this.tattooForm.image.name);
             }
-            
             const url = this.editingTattoo 
                 ? `${API_BASE_URL}/api/tattoos/${this.editingTattoo.tattoo_id}` 
                 : `${API_BASE_URL}/api/tattoos`;
-                
-            // For editing, use method spoofing
             const method = this.editingTattoo ? 'POST' : 'POST';
-            if (this.editingTattoo) {
-                formData.append('_method', 'PUT');
-            }
-            
-            // Log FormData contents
-            console.log(`Making ${method} request to ${url}`);
-            for (let [key, value] of formData.entries()) {
-                console.log(`${key}:`, value);
-            }
-            
+            if (this.editingTattoo) formData.append('_method', 'PUT');
             try {
                 const response = await fetch(url, {
                     method,
@@ -198,43 +424,23 @@ const app = createApp({
                     },
                     body: formData
                 });
-                
-                // Check response status
-                console.log('Response status:', response.status);
-                
-                // Get the response text
                 const responseText = await response.text();
                 console.log('Server response:', responseText);
-                
-                // Try to parse it as JSON if possible
-                let data;
-                try {
-                    data = JSON.parse(responseText);
-                    console.log('Parsed response data:', data);
-                } catch (e) {
-                    console.log('Response was not valid JSON');
-                }
-                
                 if (!response.ok) {
                     throw new Error(`Server returned ${response.status}: ${responseText}`);
                 }
-                
-                console.log('Tattoo saved successfully');
                 this.saving = false;
                 this.closeTattooForm();
-                
-                // Force refresh of tattoos data
+                this.showNotification('success', 'Tattoo saved successfully');
                 this.fetchTattoos();
             } catch (error) {
                 console.error('Error saving tattoo:', error);
-                alert('Failed to save tattoo. Check console for details.');
+                this.showNotification('error', 'Failed to save tattoo. Check console for details.');
                 this.saving = false;
             }
         },
         confirmDeleteTattoo(tattoo) {
-            // Verify this tattoo belongs to the current artist
             if (tattoo.artist_id !== this.user.id) return;
-            
             this.confirmModal = {
                 show: true,
                 title: 'Delete Tattoo',
@@ -248,29 +454,28 @@ const app = createApp({
                     method: 'DELETE',
                     headers: authService.getAuthHeader()
                 });
-                
                 if (!response.ok) {
                     const responseText = await response.text();
                     throw new Error(`Failed to delete tattoo: ${responseText}`);
                 }
-                
                 this.confirmModal.show = false;
+                this.showNotification('success', 'Tattoo deleted successfully');
                 this.fetchTattoos();
             } catch (error) {
                 console.error('Error deleting tattoo:', error);
-                alert('Failed to delete tattoo. Please try again.');
+                this.showNotification('error', 'Failed to delete tattoo. Please try again.');
                 this.confirmModal.show = false;
             }
         },
         filterTattoos() {
             const search = this.tattooSearch.toLowerCase();
+            const styleFilter = this.styleFilter;
             this.filteredTattoos = this.tattoos.filter(tattoo => {
-                // Only show this artist's tattoos
                 if (tattoo.artist_id !== this.user.id) return false;
-                
-                // Apply search filter
-                return tattoo.title.toLowerCase().includes(search) || 
-                      (tattoo.description && tattoo.description.toLowerCase().includes(search));
+                const matchesSearch = tattoo.title.toLowerCase().includes(search) || 
+                                     (tattoo.description && tattoo.description.toLowerCase().includes(search));
+                const matchesStyle = !styleFilter || tattoo.style === styleFilter;
+                return matchesSearch && matchesStyle;
             });
         },
         truncate(text, length) {
@@ -280,9 +485,9 @@ const app = createApp({
     },
     mounted() {
         console.log("Vue app mounted");
-        // First check authentication, then fetch data if auth is successful
         if (this.checkAuth()) {
             console.log("Auth check passed, fetching data");
+            this.loadProfileData();
             this.fetchTattoos();
         }
     }
