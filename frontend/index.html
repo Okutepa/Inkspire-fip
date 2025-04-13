@@ -11,10 +11,13 @@
     <link href="css/grid.css" rel="stylesheet">
     <link href="css/main.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 
 <body>
     <div id="app">
+        <!-- Header -->
         <header>
             <div class="header-container">
                 <div class="logo">
@@ -26,6 +29,7 @@
             </div>
         </header>
 
+        <!-- Main Sections -->
         <section class="hero">
             <div class="hero-text">
                 <p>Live . Ink . Repeat</p>
@@ -47,6 +51,7 @@
             </ul>
         </nav>
 
+        <!-- About Section -->
         <section class="about" id="about">
             <div class="grid-con">
                 <div class="heading col-span-full">
@@ -79,6 +84,7 @@
             </div>
         </section>
 
+        <!-- Video Reel Section -->
         <section class="video-reel">
             <div class="grid-con">
                 <div class="heading col-span-full">
@@ -103,6 +109,7 @@
             </div>
         </section>
 
+        <!-- Features Section -->
         <section class="features-section">
             <div class="heading-container">
                 <h2 class="heading-top special-text">WHY WE ARE THE</h2>
@@ -125,6 +132,7 @@
             </div>
         </section>
 
+        <!-- Portfolio Section -->
         <section class="portfolio-section" id="portfolio">
             <div class="grid-con">
                 <div class="heading col-span-full">
@@ -176,6 +184,7 @@
             </div>
         </section>
 
+        <!-- Artists Section -->
         <section class="artists-section" id="artists">
             <div class="grid-con">
                 <div class="heading col-span-full">
@@ -274,6 +283,61 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Booking Section -->
+        <section class="booking-section">
+            <div class="grid-con">
+                <div class="heading col-span-full">
+                    <h2>GET IN TOUCH TODAY</h2>
+                </div>
+
+                <!-- Form and CTA -->
+                <div class="form col-span-full m-col-span-6">
+                    <form>
+                        <input type="text" v-model="contactForm.name" placeholder="Full Name*" required>
+                        <input type="email" v-model="contactForm.email" placeholder="E-mail*" required>
+                        <input type="tel" v-model="contactForm.phone" placeholder="Phone number*" required>
+                        <textarea v-model="contactForm.message" placeholder="About Project (optional)"></textarea>
+                    </form>
+                </div>
+
+                <div class="cta col-span-full m-col-span-6">
+                    <div class="cta-content">
+                        <h3>A TEAM OF OUR MASTERS WILL HELP YOU CREATE A FREE SKETCH</h3>
+                        <p>We will select a suitable artist who will be ready to realize even the most daring ideas of
+                            your tattoos.</p>
+                        <div class="form-submit-btn">
+                            <a href="#" class="booking-btn" @click.prevent="submitContactForm">
+                                <span>{{ formSubmitting ? 'Sending...' : 'BOOK A CONSULTATION' }}</span>
+                                <img src="images/logo-icon.svg" alt="INKSPIRE">
+                            </a>
+                        </div>
+                        <div v-if="formSuccess" class="success-message">
+                            <p>Thank you! Your message has been sent successfully. We'll contact you shortly.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Map -->
+                <div class="map-section col-span-full">
+                    <div class="studio-info">
+                        <div class="address">
+                            <h3>INKSPIRE STUDIO</h3>
+                            <p>470 Richmond St, London Ontario, Canada, N6A 5J2</p>
+                        </div>
+
+                        <div class="map-button">
+                            <a href="#" class="show-map-btn" @click.prevent="toggleMap">
+                                {{ showMap ? 'Hide Map' : 'Show in Map' }}
+                            </a>
+                        </div>
+                    </div>
+                    <div class="map-container" v-show="showMap">
+                        <div id="map" style="height: 300px; width: 100%;"></div>
                     </div>
                 </div>
             </div>

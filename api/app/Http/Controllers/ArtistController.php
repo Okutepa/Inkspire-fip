@@ -68,7 +68,7 @@ class ArtistController extends Controller
                 'specialties' => 'nullable|string',
                 'experience' => 'nullable|integer|min:0',
                 'social' => 'nullable|string',
-                'user_id' => 'required|exists:users,user_id', // Validate user_id
+                'user_id' => 'required|exists:users,user_id',
             ], [
                 'name.required' => 'The artist name is required.',
                 'bio.required' => 'The artist bio is required.',
@@ -84,7 +84,7 @@ class ArtistController extends Controller
             $artist = new Artist();
             $artist->name = $request->input('name');
             $artist->bio = $request->input('bio');
-            $artist->user_id = $request->input('user_id'); // Set user_id
+            $artist->user_id = $request->input('user_id');
     
             if ($request->has('specialties')) {
                 $artist->specialties = $request->input('specialties');
@@ -107,6 +107,7 @@ class ArtistController extends Controller
     
             return response()->json([
                 'id' => $artist->artist_id,
+                'artist_id' => $artist->artist_id,
                 'name' => $artist->name,
                 'bio' => $artist->bio,
                 'photo_path' => $artist->photo_path,
@@ -148,14 +149,12 @@ class ArtistController extends Controller
     public function update(Request $request, $id)
     {
         try {
-            // Log the incoming request for debugging
             Log::info('Artist update request received', [
                 'id' => $id,
                 'has_file' => $request->hasFile('photo'),
-                'all_inputs' => $request->except(['photo']) // Don't log the entire photo data
+                'all_inputs' => $request->except(['photo'])
             ]);
 
-            // Validate with custom messages
             $this->validate($request, [
                 'name' => 'sometimes|required|string|max:255',
                 'bio' => 'sometimes|required|string',
@@ -173,45 +172,37 @@ class ArtistController extends Controller
                 'experience.min' => 'Years of experience cannot be negative.',
             ]);
 
-            // Find the artist
             $artist = Artist::findOrFail($id);
             Log::info('Found artist for update', ['artist' => $artist->toArray()]);
 
-            // Update name if provided
             if ($request->has('name')) {
                 $artist->name = $request->input('name');
                 Log::info('Updating artist name', ['new_name' => $request->input('name')]);
             }
             
-            // Update bio if provided
             if ($request->has('bio')) {
                 $artist->bio = $request->input('bio');
                 Log::info('Updating artist bio', ['new_bio' => $request->input('bio')]);
             }
             
-            // Update specialties if provided
             if ($request->has('specialties')) {
                 $artist->specialties = $request->input('specialties');
                 Log::info('Updating artist specialties', ['new_specialties' => $request->input('specialties')]);
             }
             
-            // Update experience if provided
             if ($request->has('experience')) {
                 $artist->experience = $request->input('experience');
                 Log::info('Updating artist experience', ['new_experience' => $request->input('experience')]);
             }
             
-            // Update social media info if provided
             if ($request->has('social')) {
                 $artist->social = $request->input('social');
                 Log::info('Updating artist social media', ['new_social' => $request->input('social')]);
             }
 
-            // Handle new photo upload if provided
             if ($request->hasFile('photo')) {
                 Log::info('New photo uploaded', ['original_name' => $request->file('photo')->getClientOriginalName()]);
                 
-                // Delete the old photo if it exists
                 if ($artist->photo_path) {
                     Storage::disk('public')->delete($artist->photo_path);
                     Log::info('Deleted old photo', ['path' => $artist->photo_path]);
@@ -224,13 +215,12 @@ class ArtistController extends Controller
                 Log::info('New photo path set', ['path' => $path]);
             }
 
-            // Save the changes
             $saved = $artist->save();
             Log::info('Artist update saved', ['success' => $saved]);
 
-            // Return the updated artist with photo URL
             return response()->json([
-                'id' => $artist->artist_id, // Use artist_id as per your model
+                'id' => $artist->artist_id,
+                'artist_id' => $artist->artist_id,
                 'name' => $artist->name,
                 'bio' => $artist->bio,
                 'photo_path' => $artist->photo_path,
@@ -314,26 +304,34 @@ class ArtistController extends Controller
     public function getMyProfile()
     {
         try {
-            // Get the authenticated user
             $user = Auth::user();
-            
             if (!$user) {
                 return response()->json(['error' => 'Unauthenticated'], 401);
             }
-            
-            // Get the artist profile associated with the authenticated user
+
             $artist = Artist::where('user_id', $user->user_id)->first();
-            
             if (!$artist) {
                 return response()->json(['error' => 'Artist profile not found'], 404);
             }
-            
-            // Format photo URL
+
             if ($artist->photo_path) {
                 $artist->photo_url = Storage::url($artist->photo_path);
             }
-            
-            return response()->json($artist);
+
+            return response()->json([
+                'id' => $artist->artist_id, // Explicitly include id field
+                'artist_id' => $artist->artist_id,
+                'name' => $artist->name,
+                'bio' => $artist->bio,
+                'experience' => $artist->experience,
+                'specialties' => $artist->specialties,
+                'social' => $artist->social,
+                'photo_path' => $artist->photo_path,
+                'photo_url' => $artist->photo_url,
+                'user_id' => $artist->user_id,
+                'created_at' => $artist->created_at,
+                'updated_at' => $artist->updated_at
+            ]);
         } catch (\Exception $e) {
             Log::error('Error fetching artist profile', [
                 'message' => $e->getMessage(),
@@ -352,21 +350,16 @@ class ArtistController extends Controller
     public function updateMyProfile(Request $request)
     {
         try {
-            // Get the authenticated user
             $user = Auth::user();
-            
             if (!$user) {
                 return response()->json(['error' => 'Unauthenticated'], 401);
             }
             
-            // Get the artist profile associated with the authenticated user
             $artist = Artist::where('user_id', $user->user_id)->first();
-            
             if (!$artist) {
                 return response()->json(['error' => 'Artist profile not found'], 404);
             }
             
-            // Validate the request
             $this->validate($request, [
                 'name' => 'sometimes|required|string|max:255',
                 'bio' => 'sometimes|required|string',
@@ -384,14 +377,12 @@ class ArtistController extends Controller
                 'experience.min' => 'Years of experience cannot be negative.',
             ]);
             
-            // Update user name if provided
             if ($request->has('name')) {
                 $user->name = $request->input('name');
                 $user->save();
                 $artist->name = $request->input('name');
             }
             
-            // Update artist fields
             if ($request->has('bio')) {
                 $artist->bio = $request->input('bio');
             }
@@ -408,9 +399,7 @@ class ArtistController extends Controller
                 $artist->social = $request->input('social');
             }
             
-            // Handle photo upload
             if ($request->hasFile('photo')) {
-                // Delete old photo if it exists
                 if ($artist->photo_path) {
                     Storage::disk('public')->delete($artist->photo_path);
                 }
@@ -421,19 +410,27 @@ class ArtistController extends Controller
                 $artist->photo_path = $path;
             }
             
-            // Save artist updates
             $artist->save();
             
-            // Format photo URL
             if ($artist->photo_path) {
                 $artist->photo_url = Storage::url($artist->photo_path);
             }
             
             return response()->json([
-                'message' => 'Profile updated successfully',
-                'artist' => $artist
+                'id' => $artist->artist_id,
+                'artist_id' => $artist->artist_id,
+                'name' => $artist->name,
+                'bio' => $artist->bio,
+                'experience' => $artist->experience,
+                'specialties' => $artist->specialties,
+                'social' => $artist->social,
+                'photo_path' => $artist->photo_path,
+                'photo_url' => $artist->photo_url,
+                'user_id' => $artist->user_id,
+                'created_at' => $artist->created_at,
+                'updated_at' => $artist->updated_at,
+                'message' => 'Profile updated successfully'
             ]);
-            
         } catch (\Illuminate\Validation\ValidationException $e) {
             Log::error('Validation failed during artist profile update', ['errors' => $e->errors()]);
             return response()->json(['error' => 'Validation failed', 'details' => $e->errors()], 422);

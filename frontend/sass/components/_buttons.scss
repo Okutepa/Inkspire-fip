@@ -75,6 +75,42 @@
     }
 }
 
+.form-submit-btn {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+
+    a {
+        color: $secondary-color;
+        font-size: 12px;
+        display: flex;
+        padding: 16px 16px;
+        justify-content: center;
+        align-items: center;
+        text-decoration: none;
+        border: 1px solid $secondary-color;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+
+        &:hover {
+            background-color: $secondary-color;
+            color: $primary-color;
+        }
+    }
+
+    .btn-icon {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: $primary-color;
+        border: 1px solid $secondary-color;
+        // padding: 4px;
+        height: 100%;
+        border-radius: 8px;
+    }
+}
+
 /* Desktop: Adjust for larger screens (769px and up) */
 @media (min-width: 769px) {
     .about-button {
