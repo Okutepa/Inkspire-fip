@@ -274,7 +274,11 @@
                         </div>
                         <div class="artist-works">
                             <div class="works-slider">
-                                <div class="work-item">
+                                <div v-for="tattoo in getArtistTattoos(artist.artist_id)" :key="tattoo.tattoo_id"
+                                    class="work-item">
+                                    <img :src="tattoo.file_path" :alt="tattoo.title">
+                                </div>
+                                <div v-if="getArtistTattoos(artist.artist_id).length === 0" class="work-item">
                                     <img src="images/portfolio-2.jpg" alt="Default artwork">
                                 </div>
                             </div>
