@@ -156,43 +156,86 @@ const app = Vue.createApp({
                     this.artists = [];
                 });
         },
-        fetchTattoos() {
+        async fetchTattoos() {
             this.loading.tattoos = true;
             this.error.tattoos = null;
+            const nocache = new Date().getTime();
             
-            fetch(`${this.apiBaseUrl}/api/tattoos`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`Failed to fetch tattoos: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('API Response (tattoos):', data);
-                    const tattoosData = data.data || [];
-                    this.tattoos = tattoosData.map(tattoo => ({
-                        ...tattoo,
-                        file_path: tattoo.file_path ? 
-                            `${this.apiBaseUrl}/storage/tattoos/${tattoo.file_path.split('/').pop()}` : 
-                            "images/default-tattoo.jpg"
-                    }));
-                    this.loading.tattoos = false;
-                    if (this.tattoos.length > 0) {
-                        const tattooImages = this.tattoos.map(tattoo => ({
-                            src: tattoo.file_path,
-                            alt: tattoo.title || 'Tattoo artwork'
-                        }));
-                        if (tattooImages.length > 0) {
-                            this.portfolioImages = tattooImages;
+            try {
+                // First, fetch the first page to get pagination info
+                const response = await fetch(`${this.apiBaseUrl}/api/tattoos?nocache=${nocache}`);
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch tattoos: ${response.status}`);
+                }
+                
+                const firstPageData = await response.json();
+                console.log('API Response (tattoos page 1):', firstPageData);
+                
+                // Initialize array with first page data
+                let allTattoos = [...(firstPageData.data || [])];
+                
+                // Check if there are additional pages
+                const lastPage = firstPageData.last_page || 1;
+                console.log(`Total pages of tattoos: ${lastPage}`);
+                
+                // Fetch additional pages if needed
+                if (lastPage > 1) {
+                    for (let page = 2; page <= lastPage; page++) {
+                        console.log(`Fetching tattoos page ${page} of ${lastPage}`);
+                        const pageResponse = await fetch(`${this.apiBaseUrl}/api/tattoos?page=${page}&nocache=${nocache}`);
+                        
+                        if (!pageResponse.ok) {
+                            throw new Error(`Failed to fetch tattoos page ${page}`);
+                        }
+                        
+                        const pageData = await pageResponse.json();
+                        console.log(`Fetched page ${page} with ${pageData.data?.length || 0} tattoos`);
+                        
+                        // Add this page's tattoos to our collection
+                        if (pageData.data && pageData.data.length > 0) {
+                            allTattoos = [...allTattoos, ...pageData.data];
                         }
                     }
-                })
-                .catch(error => {
-                    console.error('Error fetching tattoos:', error);
-                    this.error.tattoos = 'Failed to load portfolio. Please try again later.';
-                    this.loading.tattoos = false;
-                    this.tattoos = [];
-                });
+                }
+                
+                console.log(`Total tattoos fetched across all pages: ${allTattoos.length}`);
+                
+                // Process all tattoos
+                this.tattoos = allTattoos.map(tattoo => ({
+                    ...tattoo,
+                    file_path: tattoo.file_path ? 
+                        `${this.apiBaseUrl}/storage/tattoos/${tattoo.file_path.split('/').pop()}?t=${nocache}` : 
+                        "images/default-tattoo.jpg"
+                }));
+                
+                this.loading.tattoos = false;
+                
+                // Update portfolio carousel with tattoo images
+                if (this.tattoos.length > 0) {
+                    // Filter for featured tattoos or use all if none are featured
+                    let featuredTattoos = this.tattoos.filter(tattoo => tattoo.featured);
+                    
+                    // If no featured tattoos, use all tattoos
+                    if (featuredTattoos.length === 0) {
+                        featuredTattoos = this.tattoos;
+                    }
+                    
+                    const tattooImages = featuredTattoos.map(tattoo => ({
+                        src: tattoo.file_path,
+                        alt: tattoo.title || 'Tattoo artwork'
+                    }));
+                    
+                    if (tattooImages.length > 0) {
+                        this.portfolioImages = tattooImages;
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching tattoos:', error);
+                this.error.tattoos = 'Failed to load portfolio. Please try again later.';
+                this.loading.tattoos = false;
+                this.tattoos = [];
+            }
         },
         async submitContactForm() {
             if (this.formSubmitting) return;
