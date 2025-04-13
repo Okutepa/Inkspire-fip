@@ -299,20 +299,32 @@ const app = createApp({
             formData.append('experience', this.profileForm.experience || 0);
             formData.append('specialties', JSON.stringify(this.profileForm.specialties));
             formData.append('social', JSON.stringify(this.profileForm.social));
+            
+            // Add debug logs to trace the exact artist_id being used
+            const artistId = this.user.id || this.user.artist_id || this.user.user_id;
+            console.log('Using artist ID for profile update:', artistId);
+            formData.append('artist_id', artistId); // Explicitly include artist_id
+            
             if (this.profileForm.photo) {
                 formData.append('photo', this.profileForm.photo);
                 console.log('Uploading new photo:', this.profileForm.photo.name);
             }
             const apiUrl = `${API_BASE_URL}/api/artist/me`;
             formData.append('_method', 'PUT');
+            
             try {
+                // Include more detailed debugging in headers
+                const headers = {
+                    'Authorization': authService.getAuthHeader().Authorization,
+                    'X-Debug-Artist-ID': artistId // Custom header to help trace the issue
+                };
+                
                 const response = await fetch(apiUrl, {
                     method: 'POST',
-                    headers: {
-                        'Authorization': authService.getAuthHeader().Authorization
-                    },
+                    headers: headers,
                     body: formData
                 });
+                
                 const responseText = await response.text();
                 console.log('Server response:', responseText);
                 let data;
@@ -321,26 +333,36 @@ const app = createApp({
                 } catch (e) {
                     console.log('Response was not valid JSON');
                 }
+                
                 if (!response.ok) {
                     throw new Error(`Server returned ${response.status}: ${responseText}`);
                 }
+                
+                // Ensure consistent ID format in the updated user object
                 const updatedUser = { 
                     ...this.user,
                     name: this.profileForm.name,
                     bio: this.profileForm.bio,
                     experience: this.profileForm.experience,
                     specialties: this.profileForm.specialties,
-                    social: this.profileForm.social
+                    social: this.profileForm.social,
+                    id: artistId // Ensure the ID is consistently set
                 };
+                
                 if (this.profileForm.photoPreview && this.profileForm.photo) {
                     updatedUser.photo_path = this.profileForm.photoPreview;
                 }
+                
                 this.user = updatedUser;
                 authService.updateUserData(updatedUser);
                 this.updateProfileCompletionStatus();
                 this.savingProfile = false;
                 this.profileUpdated = true;
                 this.showNotification('success', 'Profile updated successfully');
+                
+                // Force a refresh of the tattoos to ensure they reflect the updated artist info
+                setTimeout(() => this.fetchTattoos(), 500);
+                
                 if (this.profileCompletionPercentage === 100) {
                     setTimeout(() => {
                         this.showNotification('success', '🎉 Congratulations! Your profile is now 100% complete.');
@@ -361,39 +383,93 @@ const app = createApp({
                 timeout: setTimeout(() => this.notification.show = false, 5000)
             };
         },
-        fetchTattoos() {
+        async fetchTattoos() {
             if (!this.user) return;
             this.loading.tattoos = true;
             this.error.tattoos = null;
             const nocache = new Date().getTime();
-            fetch(`${API_BASE_URL}/api/tattoos?nocache=${nocache}`, { 
-                headers: authService.getAuthHeader(),
-                method: 'GET'
-            })
-                .then(response => {
-                    if (!response.ok) throw new Error('Failed to fetch tattoos');
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Fetched tattoos:', data);
-                    const tattoosData = data.data || [];
-                    this.tattoos = tattoosData.map(tattoo => ({
-                        ...tattoo,
-                        file_path: tattoo.file_path ?
-                            `${API_BASE_URL}/storage/tattoos/${tattoo.file_path.split('/').pop()}?t=${nocache}` :
-                            "/images/default-tattoo.jpg"
-                    }));
-                    this.filteredTattoos = this.tattoos.filter(t => t.artist_id === this.user.id);
-                    this.recentTattoos = [...this.filteredTattoos]
-                        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-                        .slice(0, 5);
-                    this.loading.tattoos = false;
-                })
-                .catch(error => {
-                    console.error('Error fetching tattoos:', error);
-                    this.error.tattoos = 'Failed to load tattoo portfolio. Please try again.';
-                    this.loading.tattoos = false;
+            
+            // Get all possible ID formats for the current artist
+            const artistId = this.user.id || this.user.artist_id;
+            console.log('Fetching tattoos for artist ID:', artistId);
+            console.log('All possible user IDs:', {
+                id: this.user.id,
+                artist_id: this.user.artist_id,
+                user_id: this.user.user_id
+            });
+            
+            try {
+                // First, fetch the first page to get pagination info
+                const response = await fetch(`${API_BASE_URL}/api/tattoos?nocache=${nocache}`, { 
+                    headers: authService.getAuthHeader(),
+                    method: 'GET'
                 });
+                
+                if (!response.ok) throw new Error('Failed to fetch tattoos');
+                const firstPageData = await response.json();
+                console.log('Fetched first page of tattoos:', firstPageData);
+                
+                // Initialize array with first page data
+                let allTattoos = [...(firstPageData.data || [])];
+                
+                // Check if there are additional pages
+                const lastPage = firstPageData.last_page || 1;
+                console.log(`Total pages of tattoos: ${lastPage}`);
+                
+                // Fetch additional pages if needed
+                if (lastPage > 1) {
+                    for (let page = 2; page <= lastPage; page++) {
+                        console.log(`Fetching page ${page} of ${lastPage}`);
+                        const pageResponse = await fetch(`${API_BASE_URL}/api/tattoos?page=${page}&nocache=${nocache}`, { 
+                            headers: authService.getAuthHeader(),
+                            method: 'GET'
+                        });
+                        
+                        if (!pageResponse.ok) throw new Error(`Failed to fetch tattoos page ${page}`);
+                        const pageData = await pageResponse.json();
+                        console.log(`Fetched page ${page} with ${pageData.data?.length || 0} tattoos`);
+                        
+                        // Add this page's tattoos to our collection
+                        if (pageData.data && pageData.data.length > 0) {
+                            allTattoos = [...allTattoos, ...pageData.data];
+                        }
+                    }
+                }
+                
+                console.log(`Total tattoos fetched across all pages: ${allTattoos.length}`);
+                
+                // Process all tattoos
+                this.tattoos = allTattoos.map(tattoo => ({
+                    ...tattoo,
+                    file_path: tattoo.file_path ?
+                        `${API_BASE_URL}/storage/tattoos/${tattoo.file_path.split('/').pop()}?t=${nocache}` :
+                        "/images/default-tattoo.jpg"
+                }));
+                
+                // More flexible artist ID matching - try all formats
+                this.filteredTattoos = this.tattoos.filter(t => {
+                    // Convert to numbers for comparison if they're strings
+                    const tattooArtistId = typeof t.artist_id === 'string' ? parseInt(t.artist_id, 10) : t.artist_id;
+                    const currentArtistId = typeof artistId === 'string' ? parseInt(artistId, 10) : artistId;
+                    
+                    // Log each comparison for debugging
+                    console.log(`Comparing tattoo ${t.tattoo_id} artist_id:${tattooArtistId} with current:${currentArtistId}`);
+                    
+                    return tattooArtistId === currentArtistId;
+                });
+                
+                console.log(`Filtered to ${this.filteredTattoos.length} tattoos for artist ID ${artistId}`);
+                
+                this.recentTattoos = [...this.filteredTattoos]
+                    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+                    .slice(0, 5);
+                    
+                this.loading.tattoos = false;
+            } catch (error) {
+                console.error('Error fetching tattoos:', error);
+                this.error.tattoos = 'Failed to load tattoo portfolio. Please try again.';
+                this.loading.tattoos = false;
+            }
         },
         resetTattooForm() {
             this.tattooForm = { 
@@ -447,41 +523,58 @@ const app = createApp({
             const formData = new FormData();
             formData.append('title', this.tattooForm.title.trim());
             formData.append('description', this.tattooForm.description.trim());
-            const artistId = parseInt(this.user.id, 10);
-            if (isNaN(artistId)) {
-                console.error('Invalid artist_id:', this.user.id);
+            
+            // Get all possible ID values and use the first available one
+            const artistId = this.user.id || this.user.artist_id || this.user.user_id;
+            
+            if (isNaN(parseInt(artistId, 10))) {
+                console.error('Invalid artist_id:', artistId);
                 this.showNotification('error', 'Invalid artist ID. Please contact support.');
                 this.saving = false;
                 return;
             }
+            
+            console.log('Using artist ID for tattoo:', artistId);
             formData.append('artist_id', artistId);
             formData.append('style', this.tattooForm.style || '');
             formData.append('featured', this.tattooForm.featured ? '1' : '0');
+            
             if (this.tattooForm.image) {
                 formData.append('file_path', this.tattooForm.image);
             }
+            
             const url = this.editingTattoo 
                 ? `${API_BASE_URL}/api/tattoos/${this.editingTattoo.tattoo_id}` 
                 : `${API_BASE_URL}/api/tattoos`;
             const method = this.editingTattoo ? 'POST' : 'POST';
             if (this.editingTattoo) formData.append('_method', 'PUT');
+            
             try {
                 const response = await fetch(url, {
                     method,
                     headers: {
-                        'Authorization': authService.getAuthHeader().Authorization
+                        'Authorization': authService.getAuthHeader().Authorization,
+                        'X-Debug-Artist-ID': artistId // Add for debugging
                     },
                     body: formData
                 });
+                
                 const responseText = await response.text();
                 console.log('Server response:', responseText);
+                
                 if (!response.ok) {
                     throw new Error(`Server returned ${response.status}: ${responseText}`);
                 }
+                
                 this.saving = false;
                 this.closeTattooForm();
                 this.showNotification('success', 'Tattoo saved successfully');
-                this.fetchTattoos();
+                
+                // Force a cache-busting reload of tattoos
+                setTimeout(() => {
+                    console.log("Reloading tattoos after save...");
+                    this.fetchTattoos();
+                }, 500);
             } catch (error) {
                 console.error('Error saving tattoo:', error);
                 this.showNotification('error', 'Failed to save tattoo. Check console for details.');
