@@ -5,7 +5,6 @@ body {
     background-color: $secondary-color;
     color: #fff;
 
-    /* Hero Section */
     .hero {
         height: 100vh;
         width: 100%;
@@ -14,33 +13,33 @@ body {
         background-position: center;
         background-repeat: no-repeat;
         position: relative;
-        padding-top: 4.375rem; // 70px to rem
+        padding-top: 4.375rem;
         display: flex;
         flex-direction: column;
         justify-content: flex-end;
 
         .hero-text {
             padding: 0 5%;
-            margin-bottom: 3.75rem; // 60px to rem
+            margin-bottom: 3.75rem;
             text-align: center;
-            color: $primary-color; // Use variable
+            color: $primary-color;
 
             h1 {
                 color: $primary-color;
             }
 
             p {
-                font-size: 1.4rem; // Mobile first
-                letter-spacing: 0.25rem; // 4px to rem
-                margin-bottom: 0.625rem; // 10px to rem
+                font-size: 1.4rem;
+                letter-spacing: 0.25rem;
+                margin-bottom: 0.625rem;
             }
 
             .logo-desktop {
-                display: none; // Mobile first - hide desktop logo
+                display: none;
             }
 
             .logo-mobile {
-                display: block; // Mobile first - show mobile logo
+                display: block;
             }
         }
     }
@@ -92,12 +91,6 @@ body {
                 width: 100%; // Full width on mobile
             }
         }
-
-        // .about-button {
-        //     .about-us-button {
-        //         width: 100%; // Full width button on mobile
-        //     }
-        // }
 
     }
 
@@ -153,7 +146,7 @@ body {
             margin-top: 1.5rem;
             display: flex;
             gap: 1rem;
-            padding: 0 5%;
+            padding: 0 5% 1rem;
             overflow-x: auto; // Horizontal scroll
             scroll-snap-type: x mandatory; // Improved scrolling
             scrollbar-width: none;
@@ -162,8 +155,6 @@ body {
             &::-webkit-scrollbar {
                 display: none; // Hide scrollbar
             }
-
-            padding-bottom: 1rem;
 
             .feature-card {
                 scroll-snap-align: start;
@@ -392,6 +383,170 @@ body {
             }
         }
     }
+
+    .booking-section {
+        background-image: url('../images/hero-img.png'); // Adjust if a different tattoo-themed background is needed
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        padding: 40px 0;
+        color: #fff;
+
+        .heading {
+            text-align: center;
+            margin-bottom: 32px;
+
+            h2 {
+                font-size: 2.5rem;
+                font-weight: bold;
+                text-transform: uppercase;
+            }
+        }
+
+        .form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+
+            form {
+                display: flex;
+                flex-direction: column;
+            }
+
+            input,
+            textarea {
+                width: 100%;
+                padding: 10px 0;
+                border: none;
+                border-bottom: 1px solid #000;
+                margin-bottom: 20px;
+                font-size: 16px;
+                color: #000;
+                background-color: transparent;
+                outline: none;
+
+                &::placeholder {
+                    color: #888;
+                }
+            }
+
+            textarea {
+                height: 100px;
+                resize: vertical;
+            }
+        }
+
+        .cta {
+            background-color: $primary-color;
+            padding: 20px;
+            border-radius: 10px;
+            color: #fff;
+
+            .cta-content {
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+            }
+
+            h3 {
+                font-size: 16px;
+                font-style: italic;
+                font-weight: 800;
+                margin-bottom: 10px;
+                text-transform: uppercase;
+            }
+
+            p {
+                font-size: 12px;
+                margin-bottom: 20px;
+                flex-grow: 1;
+            }
+
+            .form-submit-btn {
+                text-align: center;
+
+                .booking-btn {
+                    display: inline-flex;
+                    align-items: center;
+                    gap: 10px;
+                    background-color: $secondary-color; // Black
+                    color: #fff;
+                    padding: 10px 20px;
+                    text-decoration: none;
+                    border-radius: 5px;
+                    font-weight: bold;
+                    text-transform: uppercase;
+
+                    img {
+                        width: 20px;
+                        height: 20px;
+                    }
+                }
+            }
+        }
+
+        .map-section {
+            margin-top: 40px;
+
+            .studio-info {
+                text-align: left;
+                margin-bottom: 20px;
+                flex-direction: column;
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+
+                h3 {
+                    background-color: #0E76BC; // Blue
+                    color: #fff;
+                    padding: 10px;
+                    font-size: 24px;
+                    display: inline-block;
+                    text-transform: uppercase;
+                }
+
+                p {
+                    font-size: 16px;
+                    margin-top: 10px;
+                }
+            }
+
+            .map-container {
+                width: 100%;
+                height: 300px;
+                border-radius: 10px;
+            }
+
+            .map-button {
+                text-align: center;
+                margin-top: 20px;
+
+                .show-map-btn {
+                    background-color: $primary-color;
+                    color: $secondary-color;
+                    padding: 10px 20px;
+                    text-decoration: none;
+                    border-radius: 5px;
+                    font-weight: bold;
+                    text-transform: uppercase;
+                }
+            }
+        }
+
+        .success-message,
+        .error-message {
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .success-message {
+            color: green;
+        }
+
+        .error-message {
+            color: red;
+        }
+    }
 }
 
 // Tablet styles
@@ -485,6 +640,23 @@ body {
 
 
         }
+
+        .map-section {
+            display: flex;
+        }
+
+        // .booking-section {
+
+        //     .form-con {
+        //         .form-con-main {
+        //             display: flex;
+        //             flex-direction: row;
+        //             gap: 1.5rem; 
+        //         }
+        //     }
+
+        // }
+
     }
 }
 
@@ -622,5 +794,6 @@ body {
                 }
             }
         }
+
     }
 }

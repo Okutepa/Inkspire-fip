@@ -1,4 +1,3 @@
-// js/services/auth.service.js
 const AUTH_TOKEN_KEY = 'auth_token';
 const USER_KEY = 'user';
 const API_BASE_URL = 'http://localhost:8888/Inkspire-fip/api/public';
@@ -29,8 +28,21 @@ export default {
             if (!data.access_token || !data.user) {
                 throw new Error('Invalid response format');
             }
+            console.log("Login response data:", data); // Debug log
+            // Ensure the user object includes an id field
+            const user = {
+                id: data.user.id || data.user.user_id, // Fallback to user_id if id is not present
+                name: data.user.name,
+                email: data.user.email,
+                role: data.user.role
+            };
+            if (!user.id) {
+                console.error("User ID missing in login response:", user);
+                throw new Error('User ID missing in login response');
+            }
+            console.log("Storing user after login:", user); // Debug log
             this.setToken(data.access_token);
-            this.setUser(data.user);
+            this.setUser(user);
             return data;
         });
     },
@@ -48,6 +60,24 @@ export default {
                 throw new Error('Registration failed');
             }
             return response.json();
+        })
+        .then(data => {
+            console.log("Register response data:", data); // Debug log
+            if (data.user) {
+                const user = {
+                    id: data.user.id || data.user.user_id,
+                    name: data.user.name,
+                    email: data.user.email,
+                    role: data.user.role
+                };
+                if (!user.id) {
+                    console.error("User ID missing in register response:", user);
+                    throw new Error('User ID missing in register response');
+                }
+                console.log("Storing user after registration:", user); // Debug log
+                this.setUser(user);
+            }
+            return data;
         });
     },
     
@@ -62,6 +92,7 @@ export default {
                 }
             })
             .then(() => {
+                console.log("Logout successful, clearing auth data"); // Debug log
                 this.clearAuth();
                 return { success: true };
             })
@@ -71,74 +102,98 @@ export default {
                 return { success: true, error: err.message };
             });
         } else {
+            console.log("No token found, clearing auth data"); // Debug log
             this.clearAuth();
             return Promise.resolve({ success: true });
         }
     },
     
     clearAuth() {
+        console.log("Clearing auth data from localStorage"); // Debug log
         localStorage.removeItem(AUTH_TOKEN_KEY);
         localStorage.removeItem(USER_KEY);
     },
     
     getToken() {
-        return localStorage.getItem(AUTH_TOKEN_KEY);
+        const token = localStorage.getItem(AUTH_TOKEN_KEY);
+        console.log("Retrieved token from localStorage:", token); // Debug log
+        return token;
     },
     
     setToken(token) {
+        console.log("Setting token in localStorage:", token); // Debug log
         localStorage.setItem(AUTH_TOKEN_KEY, token);
     },
     
     getUser() {
         try {
             const userJson = localStorage.getItem(USER_KEY);
-            return userJson ? JSON.parse(userJson) : null;
+            const user = userJson ? JSON.parse(userJson) : null;
+            console.log("Retrieved user from localStorage:", user); // Debug log
+            return user;
         } catch (e) {
-            this.clearAuth(); // Clear invalid data
+            console.error("Error parsing user from localStorage:", e);
+            this.clearAuth();
             return null;
         }
     },
     
     updateUserData(userData) {
-        // Make a copy to avoid modifying the original object
         const updatedData = { ...userData };
-        
-        // Remove token if present, as it should be stored separately
         if (updatedData.token) {
             delete updatedData.token;
         }
-        
+        // Ensure id is preserved if present
+        if (!updatedData.id && userData.artist_id) {
+            updatedData.id = userData.artist_id;
+        }
+        console.log("Updating user in localStorage:", updatedData); // Debug log
         localStorage.setItem(USER_KEY, JSON.stringify(updatedData));
     },
     
     setUser(user) {
-        localStorage.setItem(USER_KEY, JSON.stringify(user));
+        const userToStore = {
+            id: user.id || user.user_id,
+            name: user.name,
+            email: user.email,
+            role: user.role
+        };
+        console.log("Setting user in localStorage:", userToStore); // Debug log
+        localStorage.setItem(USER_KEY, JSON.stringify(userToStore));
     },
     
     isLoggedIn() {
-        return !!this.getToken();
+        const isLoggedIn = !!this.getToken();
+        console.log("Is user logged in?", isLoggedIn); // Debug log
+        return isLoggedIn;
     },
     
     isAdmin() {
         const user = this.getUser();
-        return user && user.role === 'admin';
+        const isAdmin = user && user.role === 'admin';
+        console.log("Is user admin?", isAdmin); // Debug log
+        return isAdmin;
     },
     
     isArtist() {
         const user = this.getUser();
-        return user && user.role === 'artist';
+        const isArtist = user && user.role === 'artist';
+        console.log("Is user artist?", isArtist); // Debug log
+        return isArtist;
     },
     
     getAuthHeader() {
         const token = this.getToken();
-        return token ? { 'Authorization': `Bearer ${token}` } : {};
+        const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
+        console.log("Auth headers:", headers); // Debug log
+        return headers;
     },
     
-    // Fetch the current user information from the server
     getCurrentUser() {
         const token = this.getToken();
         
         if (!token) {
+            console.log("No token found, user not authenticated"); // Debug log
             return Promise.resolve(null);
         }
         
@@ -149,25 +204,36 @@ export default {
         })
         .then(response => {
             if (!response.ok) {
-                // Token was rejected by the server
-                this.clearAuth(); // Clear invalid token
+                console.log("Failed to fetch current user, clearing auth data"); // Debug log
+                this.clearAuth();
                 throw new Error('Failed to get user info');
             }
             return response.json();
         })
         .then(data => {
+            console.log("Fetched current user data:", data); // Debug log
             if (!data || !data.id) {
-                // Invalid user data
+                console.log("Invalid user data, clearing auth data"); // Debug log
                 this.clearAuth();
                 return null;
             }
-            // Update the stored user data with the latest from server
-            this.setUser(data);
-            return data;
+            const user = {
+                id: data.id || data.user_id,
+                name: data.name,
+                email: data.email,
+                role: data.role
+            };
+            if (!user.id) {
+                console.error("User ID missing in current user response:", user);
+                this.clearAuth();
+                return null;
+            }
+            this.setUser(user);
+            return user;
         })
         .catch(err => {
             console.error('Error fetching current user:', err);
-            this.clearAuth(); // Clear on any error
+            this.clearAuth();
             return null;
         });
     }

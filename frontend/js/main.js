@@ -1,6 +1,3 @@
-// No need to re-declare createApp since it's already available from the Vue import
-// Remove this line: const { createApp } = Vue;
-
 const app = Vue.createApp({
     data() {
         return {
@@ -16,7 +13,7 @@ const app = Vue.createApp({
             },
             videoSection: {
                 heading: "OUR WORK",
-                posterImage: "images/hero-img.png", // Make sure this file exists
+                posterImage: "images/hero-img.png",
                 videoSrc: "videos/team-showcase.mp4",
                 isPlaying: false
             },
@@ -35,11 +32,9 @@ const app = Vue.createApp({
                 { src: "images/portfolio-5.jpg", alt: "Tattoo Artwork 5" }
             ],
             currentIndex: 0,
-            
-            // API-related properties
             artists: [],
-            tattoos: [], // Ensure this is initialized as an empty array
-            apiBaseUrl: 'http://localhost:8888/Inkspire-fip/api/public', // Path to your Lumen API
+            tattoos: [],
+            apiBaseUrl: 'http://localhost:8888/Inkspire-fip/api/public',
             loading: {
                 artists: false,
                 tattoos: false
@@ -47,8 +42,35 @@ const app = Vue.createApp({
             error: {
                 artists: null,
                 tattoos: null
-            }
+            },
+            contactForm: {
+                name: '',
+                email: '',
+                phone: '',
+                message: ''
+            },
+            formSubmitting: false,
+            formError: null,
+            formSuccess: false,
+            showMap: false,
+            map: null // To store the Leaflet map instance
         };
+    },
+    watch: {
+        showMap(newVal) {
+            console.log('showMap changed to:', newVal);
+            if (newVal) {
+                this.$nextTick(() => {
+                    if (!this.map) {
+                        console.log('Initializing map...');
+                        this.initMap();
+                    } else {
+                        console.log('Map already initialized, refreshing size...');
+                        this.map.invalidateSize();
+                    }
+                });
+            }
+        }
     },
     methods: {
         toggleMenu() {
@@ -105,8 +127,6 @@ const app = Vue.createApp({
         prevSlide() {
             this.currentIndex = (this.currentIndex - 1 + this.portfolioImages.length) % this.portfolioImages.length;
         },
-        
-        // Improved API methods
         fetchArtists() {
             this.loading.artists = true;
             this.error.artists = null;
@@ -119,31 +139,23 @@ const app = Vue.createApp({
                     return response.json();
                 })
                 .then(data => {
-                    // Debug the API response
                     console.log('API Response (artists):', data);
-                    
-                    // Get data from paginated response
                     const artistsData = data.data || [];
-        
-                    // Use the actual images from the API
                     this.artists = artistsData.map(artist => ({
                         ...artist,
                         photo_path: artist.photo_path ? 
                             `${this.apiBaseUrl}/storage/artists/${artist.photo_path.split('/').pop()}` : 
                             "images/default-artist.jpg"
                     }));
-                    
                     this.loading.artists = false;
                 })
                 .catch(error => {
                     console.error('Error fetching artists:', error);
                     this.error.artists = 'Failed to load artists. Please try again later.';
                     this.loading.artists = false;
-                    // Ensure we set an empty array on error to prevent filter issues
                     this.artists = [];
                 });
         },
-        
         fetchTattoos() {
             this.loading.tattoos = true;
             this.error.tattoos = null;
@@ -156,30 +168,20 @@ const app = Vue.createApp({
                     return response.json();
                 })
                 .then(data => {
-                    // Debug the API response
                     console.log('API Response (tattoos):', data);
-                    
-                    // Get data from paginated response
                     const tattoosData = data.data || [];
-        
-                    // Use the actual images from the API with corrected paths
                     this.tattoos = tattoosData.map(tattoo => ({
                         ...tattoo,
                         file_path: tattoo.file_path ? 
                             `${this.apiBaseUrl}/storage/tattoos/${tattoo.file_path.split('/').pop()}` : 
                             "images/default-tattoo.jpg"
                     }));
-        
                     this.loading.tattoos = false;
-                    
-                    // Update portfolio images if tattoos are available
                     if (this.tattoos.length > 0) {
                         const tattooImages = this.tattoos.map(tattoo => ({
                             src: tattoo.file_path,
                             alt: tattoo.title || 'Tattoo artwork'
                         }));
-                        
-                        // Only update if we have tattoo images
                         if (tattooImages.length > 0) {
                             this.portfolioImages = tattooImages;
                         }
@@ -189,20 +191,81 @@ const app = Vue.createApp({
                     console.error('Error fetching tattoos:', error);
                     this.error.tattoos = 'Failed to load portfolio. Please try again later.';
                     this.loading.tattoos = false;
-                    // Ensure we set an empty array on error to prevent filter issues
                     this.tattoos = [];
                 });
+        },
+        async submitContactForm() {
+            if (this.formSubmitting) return;
+
+            if (!this.contactForm.name || !this.contactForm.email || !this.contactForm.phone) {
+                this.formError = 'Please fill in all required fields (Name, Email, Phone).';
+                return;
+            }
+
+            this.formSubmitting = true;
+            this.formError = null;
+            this.formSuccess = false;
+
+            try {
+                const response = await fetch(`${this.apiBaseUrl}/api/contact`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(this.contactForm)
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to submit form');
+                }
+
+                const data = await response.json();
+                console.log('Form submitted successfully:', data);
+                this.formSuccess = true;
+                this.contactForm = { name: '', email: '', phone: '', message: '' };
+            } catch (error) {
+                console.error('Error submitting form:', error);
+                this.formError = 'Failed to submit the form. Please try again later.';
+            } finally {
+                this.formSubmitting = false;
+            }
+        },
+        toggleMap() {
+            this.showMap = !this.showMap;
+        },
+        initMap() {
+            const mapContainer = document.getElementById('map');
+            if (!mapContainer) {
+                console.error('Map container not found!');
+                return;
+            }
+
+            console.log('Initializing map...');
+            this.map = L.map('map', {
+                center: [42.985, -81.245],
+                zoom: 13,
+                zoomControl: true
+            });
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(this.map);
+
+            L.marker([42.985, -81.245]).addTo(this.map)
+                .bindPopup('Inkspire Studio')
+                .openPopup();
+
+            this.map.invalidateSize();
+            console.log('Map initialized and size adjusted');
         }
     },
     mounted() {
-        // Close menu on resize
         window.addEventListener('resize', () => {
             if (this.menuOpen && window.innerWidth > 768) {
                 this.closeMenu();
             }
         });
-        
-        // Close menu on outside click
+
         document.addEventListener('click', (e) => {
             const menuBtn = document.querySelector('.menu-btn');
             const navMenu = document.querySelector('.nav-menu');
@@ -213,7 +276,6 @@ const app = Vue.createApp({
             }
         });
 
-        // Feature heading animations
         const featuresObserver = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
@@ -222,13 +284,12 @@ const app = Vue.createApp({
                 }
             });
         }, { threshold: 0.2 });
-        
+
         const featuresSection = document.querySelector('.features-section');
         if (featuresSection) {
             featuresObserver.observe(featuresSection);
         }
-        
-        // Fetch data from API
+
         this.fetchArtists();
         this.fetchTattoos();
     }

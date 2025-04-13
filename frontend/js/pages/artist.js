@@ -25,7 +25,6 @@ const app = createApp({
             tattooForm: { 
                 title: '', 
                 description: '', 
-                artist_id: '', 
                 style: '',
                 image: null, 
                 imagePreview: null, 
@@ -73,13 +72,9 @@ const app = createApp({
     },
     computed: {
         profileCompletionPercentage() {
-            // Update the completion status based on current user data
             this.updateProfileCompletionStatus();
-            
-            // Count completed items
             const total = Object.keys(this.profileCompletionItems).length;
             const completed = Object.values(this.profileCompletionItems).filter(item => item.completed).length;
-            
             return Math.round((completed / total) * 100);
         },
         incompleteProfileItems() {
@@ -90,18 +85,13 @@ const app = createApp({
     },
     methods: {
         updateProfileCompletionStatus() {
-            // Check each profile item and update its completion status
             if (this.user) {
                 this.profileCompletionItems.name.completed = Boolean(this.user.name && this.user.name.trim().length > 0);
                 this.profileCompletionItems.photo.completed = Boolean(this.user.photo_path && !this.user.photo_path.includes('default-artist.jpg'));
-                this.profileCompletionItems.bio.completed = Boolean(this.user.bio && this.user.bio.trim().length >= 50); // Require a minimum bio length
+                this.profileCompletionItems.bio.completed = Boolean(this.user.bio && this.user.bio.trim().length >= 50);
                 this.profileCompletionItems.experience.completed = Boolean(this.user.experience && this.user.experience > 0);
-                
-                // Check specialties - require at least 2 specialties
                 const specialtiesArray = Array.isArray(this.user.specialties) ? this.user.specialties : [];
                 this.profileCompletionItems.specialties.completed = specialtiesArray.length >= 2;
-                
-                // Check if any social media is filled
                 const social = this.user.social || {};
                 this.profileCompletionItems.social.completed = Boolean(
                     (social.instagram && social.instagram.trim()) || 
@@ -120,6 +110,7 @@ const app = createApp({
             
             const user = authService.getUser();
             console.log("User from localStorage:", user);
+            console.log("User ID from localStorage:", user ? user.id : 'undefined', "Type:", user ? typeof user.id : 'undefined');
             
             if (!user || user.role !== 'artist') {
                 console.log("User has invalid role, redirecting to home page");
@@ -128,20 +119,27 @@ const app = createApp({
                 return false;
             }
             
+            if (!user.id && !user.user_id) {
+                console.error("User ID is missing from localStorage:", user);
+                alert('Invalid user data. Please log in again.');
+                authService.logout();
+                window.location.href = '../login.html';
+                return false;
+            }
+            
+            user.id = user.id || user.user_id;
             this.user = user;
             console.log("Artist authenticated successfully:", this.user);
+            console.log("Assigned user ID:", this.user.id);
             return true;
         },
         async logout() {
             await authService.logout();
             window.location.href = '../login.html';
         },
-        // Profile Management
         loadProfileData() {
             this.loading.profile = true;
             this.error.profile = null;
-            
-            // API endpoint to fetch artist profile for the authenticated user
             const apiUrl = `${API_BASE_URL}/api/artist/me`;
             
             fetch(apiUrl, { 
@@ -152,7 +150,7 @@ const app = createApp({
                     if (!response.ok) {
                         if (response.status === 404) {
                             this.error.profile = 'Artist profile not found. Please contact an admin to create your profile.';
-                            return null; // Allow handling of no profile case
+                            return null;
                         }
                         throw new Error('Failed to load profile data');
                     }
@@ -163,8 +161,7 @@ const app = createApp({
                     
                     if (data) {
                         console.log('Fetched profile data:', data);
-                        
-                        // Process photo path with cache busting
+                        console.log('Fetched artist ID:', data.id || data.artist_id);
                         const nocache = new Date().getTime();
                         let photoPath = data.photo_path;
                         if (photoPath && !photoPath.startsWith('http')) {
@@ -174,14 +171,16 @@ const app = createApp({
                             photoPath = `${photoPath}?t=${nocache}`;
                         }
                         
-                        // Update user data with fetched profile
-                        this.user = { 
-                            ...this.user, 
+                        const updatedUser = {
+                            ...this.user,
                             ...data,
+                            id: data.id || data.artist_id, // Ensure id is set
                             photo_path: photoPath || this.user.photo_path
                         };
+                        this.user = updatedUser;
+                        console.log("Updated user after API:", this.user);
+                        console.log("Updated user ID:", this.user.id);
                         
-                        // Parse specialties
                         try {
                             this.user.specialties = data.specialties && typeof data.specialties === 'string' 
                                 ? JSON.parse(data.specialties) 
@@ -191,7 +190,6 @@ const app = createApp({
                             this.user.specialties = [];
                         }
                         
-                        // Parse social media
                         try {
                             this.user.social = data.social && typeof data.social === 'string' 
                                 ? JSON.parse(data.social) 
@@ -201,10 +199,7 @@ const app = createApp({
                             this.user.social = { instagram: '', twitter: '', facebook: '' };
                         }
                         
-                        // Update local storage
                         authService.updateUserData(this.user);
-                        
-                        // Populate profile form
                         this.profileForm.name = this.user.name || '';
                         this.profileForm.bio = this.user.bio || '';
                         this.profileForm.experience = this.user.experience || 0;
@@ -214,11 +209,8 @@ const app = createApp({
                             twitter: '',
                             facebook: ''
                         };
-                        
-                        // Update profile completion status
                         this.updateProfileCompletionStatus();
                     } else {
-                        // Fallback if no profile exists
                         this.profileForm.name = this.user.name || '';
                         this.profileForm.bio = '';
                         this.profileForm.experience = 0;
@@ -229,11 +221,9 @@ const app = createApp({
                 .catch(err => {
                     console.error('Error loading profile:', err);
                     this.loading.profile = false;
-                    if (!this.error.profile) { // Only set if not already set (e.g., by 404)
+                    if (!this.error.profile) {
                         this.error.profile = 'Failed to load profile data. Please try again.';
                     }
-                    
-                    // Fallback to existing user data
                     this.profileForm.name = this.user.name || '';
                     this.profileForm.bio = this.user.bio || '';
                     this.profileForm.experience = this.user.experience || 0;
@@ -248,14 +238,12 @@ const app = createApp({
         handleProfilePhotoUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
-            
             const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
             if (!validTypes.includes(file.type)) {
                 this.showNotification('error', 'Please select a valid image file (JPEG, PNG, or GIF)');
                 event.target.value = '';
                 return;
             }
-            
             this.profileForm.photo = file;
             const reader = new FileReader();
             reader.onload = e => this.profileForm.photoPreview = e.target.result;
@@ -273,47 +261,37 @@ const app = createApp({
         },
         validateProfileForm() {
             let errors = [];
-            
             if (!this.profileForm.name.trim()) {
                 errors.push('Name is required');
             }
-            
             if (!this.profileForm.bio.trim()) {
                 errors.push('Bio is required');
             } else if (this.profileForm.bio.trim().length < 50) {
                 errors.push('Bio should be at least 50 characters long');
             }
-            
             if (!this.profileForm.experience) {
                 errors.push('Years of experience is required');
             }
-            
             if (this.profileForm.specialties.length < 2) {
                 errors.push('Please add at least 2 specialties');
             }
-            
             const hasSocial = Boolean(
                 (this.profileForm.social.instagram && this.profileForm.social.instagram.trim()) || 
                 (this.profileForm.social.twitter && this.profileForm.social.twitter.trim()) || 
                 (this.profileForm.social.facebook && this.profileForm.social.facebook.trim())
             );
-            
             if (!hasSocial) {
                 errors.push('Please add at least one social media profile');
             }
-            
             return errors;
         },
         async saveProfile() {
             console.log('Saving profile with form data:', this.profileForm);
-            
-            // Validate form
             const validationErrors = this.validateProfileForm();
             if (validationErrors.length > 0) {
                 this.showNotification('error', validationErrors[0]);
                 return;
             }
-            
             this.savingProfile = true;
             const formData = new FormData();
             formData.append('name', this.profileForm.name.trim());
@@ -325,20 +303,16 @@ const app = createApp({
                 formData.append('photo', this.profileForm.photo);
                 console.log('Uploading new photo:', this.profileForm.photo.name);
             }
-            
-            // Use /api/artist/me for updating the profile
             const apiUrl = `${API_BASE_URL}/api/artist/me`;
-            formData.append('_method', 'PUT'); // Spoof PUT with POST for FormData
-            
+            formData.append('_method', 'PUT');
             try {
                 const response = await fetch(apiUrl, {
-                    method: 'POST', // Using POST with _method=PUT
+                    method: 'POST',
                     headers: {
                         'Authorization': authService.getAuthHeader().Authorization
                     },
                     body: formData
                 });
-                
                 const responseText = await response.text();
                 console.log('Server response:', responseText);
                 let data;
@@ -347,11 +321,9 @@ const app = createApp({
                 } catch (e) {
                     console.log('Response was not valid JSON');
                 }
-                
                 if (!response.ok) {
                     throw new Error(`Server returned ${response.status}: ${responseText}`);
                 }
-                
                 const updatedUser = { 
                     ...this.user,
                     name: this.profileForm.name,
@@ -360,22 +332,15 @@ const app = createApp({
                     specialties: this.profileForm.specialties,
                     social: this.profileForm.social
                 };
-                
                 if (this.profileForm.photoPreview && this.profileForm.photo) {
                     updatedUser.photo_path = this.profileForm.photoPreview;
                 }
-                
                 this.user = updatedUser;
                 authService.updateUserData(updatedUser);
-                
-                // Update profile completion status
                 this.updateProfileCompletionStatus();
-                
                 this.savingProfile = false;
                 this.profileUpdated = true;
                 this.showNotification('success', 'Profile updated successfully');
-                
-                // If profile is now 100% complete, show special notification
                 if (this.profileCompletionPercentage === 100) {
                     setTimeout(() => {
                         this.showNotification('success', '🎉 Congratulations! Your profile is now 100% complete.');
@@ -422,7 +387,6 @@ const app = createApp({
                     this.recentTattoos = [...this.filteredTattoos]
                         .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
                         .slice(0, 5);
-                    this.tattooForm.artist_id = this.user.id;
                     this.loading.tattoos = false;
                 })
                 .catch(error => {
@@ -435,7 +399,6 @@ const app = createApp({
             this.tattooForm = { 
                 title: '', 
                 description: '', 
-                artist_id: this.user ? this.user.id : '', 
                 style: '',
                 image: null, 
                 imagePreview: null, 
@@ -448,7 +411,6 @@ const app = createApp({
             this.tattooForm = { 
                 title: tattoo.title, 
                 description: tattoo.description || '', 
-                artist_id: tattoo.artist_id,
                 style: tattoo.style || '',
                 image: null, 
                 imagePreview: tattoo.file_path, 
@@ -485,9 +447,16 @@ const app = createApp({
             const formData = new FormData();
             formData.append('title', this.tattooForm.title.trim());
             formData.append('description', this.tattooForm.description.trim());
-            formData.append('artist_id', this.user.id);
-            formData.append('featured', this.tattooForm.featured ? '1' : '0');
+            const artistId = parseInt(this.user.id, 10);
+            if (isNaN(artistId)) {
+                console.error('Invalid artist_id:', this.user.id);
+                this.showNotification('error', 'Invalid artist ID. Please contact support.');
+                this.saving = false;
+                return;
+            }
+            formData.append('artist_id', artistId);
             formData.append('style', this.tattooForm.style || '');
+            formData.append('featured', this.tattooForm.featured ? '1' : '0');
             if (this.tattooForm.image) {
                 formData.append('file_path', this.tattooForm.image);
             }
