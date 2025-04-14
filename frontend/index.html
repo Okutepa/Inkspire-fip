@@ -10,8 +10,20 @@
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;600&display=swap" rel="stylesheet">
     <link href="css/grid.css" rel="stylesheet">
     <link href="css/main.css" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Load GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.7/gsap.min.js"
+        integrity="sha512-f6bQMg6nkSRw/xfHw5BCbISe/dJjXrVGfz9BSDwhZtiErHwk7ifbmBEtF9vFW8UNIQPhV2uEFVyI/UHob9r7Cw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.7/ScrollTrigger.min.js"
+        integrity="sha512-AcqPGqrrAEtEwe+ADO5R8RbdFi7tuU7b/A2cJJH0Im0D18NRk5p5s4B3E5PMuO81KFw0ClN7J5SHVUJz7KOb0A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.7/TextPlugin.min.js"
+        integrity="sha512-cxH9rbrf9TrOfYMunxS2cLhFg/hIFJP9/d8SdBT1To+D5BHf6XcYN6PGtLiN9baib6ve4JDOzaPrCTRyo/8J9g=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- Load Lenis for smooth scrolling -->
+    <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/bundled/lenis.min.js"></script>
+    <!-- Load Leaflet for maps -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 
@@ -31,22 +43,31 @@
 
         <!-- Main Sections -->
         <section class="hero">
-            <div class="hero-text">
-                <p>Live . Ink . Repeat</p>
-                <div class="logo-desktop">
-                    <img src="images/hero-text-desktop.svg" alt="INKSPIRE">
+            <div class="hero-content">
+                <div class="hero-logo">
+                    <div class="logo-desktop">
+                        <img src="images/hero-text-desktop.svg" alt="INKSPIRE">
+                    </div>
+                    <div class="logo-mobile">
+                        <img src="images/hero-text-mobile.svg" alt="INKSPIRE">
+                    </div>
                 </div>
-                <div class="logo-mobile">
-                    <img src="images/hero-text-mobile.svg" alt="INKSPIRE">
+                <div class="hero-tagline">
+                    <p>Embrace your style</p>
+                    <div class="stroke"></div>
+                    <p class="scroll">Scroll for more</p>
                 </div>
+            </div>
+            <div class="hero-image">
+                <img src="images/hero-img.jpg" alt="Tattoo Artists Group Photo">
             </div>
         </section>
 
         <nav class="nav-menu" :class="{ open: menuOpen }">
             <ul>
-                <li><a href="#home" @click="closeMenu">Home</a></li>
-                <li><a href="#about" @click="closeMenu">About</a></li>
-                <li><a href="#services" @click="closeMenu">Services</a></li>
+                <li><a href="index.html" @click="closeMenu">Home</a></li>
+                <li><a href="gallery.html" @click="closeMenu">Gallery</a></li>
+                <li><a href="about.html" @click="closeMenu">About</a></li>
                 <li><a href="#contact" @click="closeMenu">Contact</a></li>
             </ul>
         </nav>
@@ -70,15 +91,8 @@
                         <h3>{{ aboutSection.tagline }}</h3>
                         <p class="descriptive-p">{{ aboutSection.description }}</p>
                     </div>
-                    <div class="about-button">
-                        <a href="about.html" class="about-us-button">
-                            <div class="text-container">ABOUT US</div>
-                            <div class="icon-container">
-                                <div class="icon">
-                                    <img src="images/logo-icon.svg" alt="INKSPIRE">
-                                </div>
-                            </div>
-                        </a>
+                    <div class="button-wrapper">
+                        <a href="#" class="inkspire-btn">MORE ABOUT US</a>
                     </div>
                 </div>
             </div>
@@ -175,10 +189,7 @@
                         </div>
                     </div>
                     <div class="portfolio-cta">
-                        <a href="gallery.html" class="view-all-btn">
-                            <span>VIEW ALL WORKS</span>
-                            <div class="icon-box"></div>
-                        </a>
+                        <a href="gallery.html" class="inkspire-btn">VIEW ALL WORKS</a>
                     </div>
                 </div>
             </div>
@@ -208,13 +219,8 @@
                                 <div class="artist-info">
                                     <h3 class="artist-name">{{ artist.name }}</h3>
                                     <p class="artist-title">Tattoo Artist</p>
-                                    <a :href="'artist-bio.html?id=' + artist.artist_id" class="artist-bio-btn">
-                                        <span>{{ artist.name }}'s bio</span>
-                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
-                                            xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M3 13L13 3M13 3H5M13 3V11" stroke="#000" stroke-width="1.5"
-                                                stroke-linecap="round" stroke-linejoin="round" />
-                                        </svg>
+                                    <a :href="'artist-bio.html?id=' + artist.artist_id" class="inkspire-btn">
+                                        {{ artist.name }}'s bio
                                     </a>
                                 </div>
                                 <div class="artist-styles">
@@ -240,56 +246,15 @@
                             </div>
                         </div>
                     </div>
-                    <div v-if="artists.length === 0" class="artist-profile">
-                        <div class="artists-info">
-                            <div class="artist-image">
-                                <img src="images/portfolio-1.jpg" alt="Default Artist">
-                                <div class="artist-tags">
-                                    <span class="artist-tag resident">Resident Artist</span>
-                                    <span class="artist-tag instagram">Instagram</span>
-                                </div>
-                            </div>
-                            <div class="artist-details">
-                                <div class="artist-info">
-                                    <h3 class="artist-name">Default Artist</h3>
-                                    <p class="artist-title">Tattoo Artist</p>
-                                    <a href="#" class="artist-bio-btn">
-                                        <span>Artist's bio</span>
-                                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none"
-                                            xmlns="http://www.w3.org/2000/svg">
-                                            <path d="M3 13L13 3M13 3H5M13 3V11" stroke="#000" stroke-width="1.5"
-                                                stroke-linecap="round" stroke-linejoin="round" />
-                                        </svg>
-                                    </a>
-                                </div>
-                                <div class="artist-styles">
-                                    <h4>STYLES</h4>
-                                    <ul>
-                                        <li>流动Minimal</li>
-                                        <li>Fine Line</li>
-                                        <li>Geometric</li>
-                                    </ul>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="artist-works">
-                            <div class="works-slider">
-                                <div v-for="tattoo in getArtistTattoos(artist.artist_id)" :key="tattoo.tattoo_id"
-                                    class="work-item">
-                                    <img :src="tattoo.file_path" :alt="tattoo.title">
-                                </div>
-                                <div v-if="getArtistTattoos(artist.artist_id).length === 0" class="work-item">
-                                    <img src="images/portfolio-2.jpg" alt="Default artwork">
-                                </div>
-                            </div>
-                        </div>
+                    <div v-if="artists.length === 0" class="no-artists-message">
+                        <p>No artists available at the moment. Please check back later.</p>
                     </div>
                 </div>
             </div>
         </section>
 
         <!-- Booking Section -->
-        <section class="booking-section">
+        <section class="booking-section" id="contact">
             <div class="grid-con">
                 <div class="heading col-span-full">
                     <h2>GET IN TOUCH TODAY</h2>
@@ -311,9 +276,8 @@
                         <p>We will select a suitable artist who will be ready to realize even the most daring ideas of
                             your tattoos.</p>
                         <div class="form-submit-btn">
-                            <a href="#" class="booking-btn" @click.prevent="submitContactForm">
-                                <span>{{ formSubmitting ? 'Sending...' : 'BOOK A CONSULTATION' }}</span>
-                                <img src="images/logo-icon.svg" alt="INKSPIRE">
+                            <a href="#" class="inkspire-btn dark" @click.prevent="submitContactForm">
+                                {{ formSubmitting ? 'Sending...' : 'BOOK A CONSULTATION' }}
                             </a>
                         </div>
                         <div v-if="formSuccess" class="success-message">
@@ -331,7 +295,7 @@
                         </div>
 
                         <div class="map-button">
-                            <a href="#" class="show-map-btn" @click.prevent="toggleMap">
+                            <a href="#" class="inkspire-btn" @click.prevent="toggleMap">
                                 {{ showMap ? 'Hide Map' : 'Show in Map' }}
                             </a>
                         </div>
@@ -342,8 +306,61 @@
                 </div>
             </div>
         </section>
+
+        <!-- Footer -->
+        <footer>
+            <div class="grid-con">
+                <div class="footer-content col-span-full">
+                    <div class="footer-logo">
+                        <img src="images/inkspire-logo.svg" alt="INKSPIRE">
+                    </div>
+                    <div class="footer-info">
+                        <div class="contact-info">
+                            <div class="info-item">
+                                <h4>Let's talk</h4>
+                                <p>GetInkspireLondon@gmail.com</p>
+                            </div>
+                            <div class="info-item">
+                                <h4>Phone</h4>
+                                <p>+1 234 567 8910</p>
+                            </div>
+                            <div class="info-item">
+                                <h4>Work time</h4>
+                                <p>10:00 - 18:00</p>
+                            </div>
+                            <div class="info-item">
+                                <h4>Address</h4>
+                                <p>470 Richmond St, London, ON</p>
+                            </div>
+                        </div>
+                        <div class="social-links">
+                            <h4>Instagram</h4>
+                            <p>@GetInkspired_London</p>
+                        </div>
+                        <div class="footer-nav">
+                            <h4>Menu</h4>
+                            <ul>
+                                <li><a href="index.html">Home Page</a></li>
+                                <li><a href="about.html">About Us</a></li>
+                                <li><a href="gallery.html">Gallery</a></li>
+                                <li><a href="#contact">Contact Us</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="back-to-top">
+                        <a href="#" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
+                            BACK TO TOP
+                        </a>
+                    </div>
+                </div>
+                <div class="copyright col-span-full">
+                    <p>© INKSPIRE {{ new Date().getFullYear() }} | All Rights Reserved</p>
+                </div>
+            </div>
+        </footer>
     </div>
 
+    <!-- Load Vue and main.js -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script type="module" src="js/main.js"></script>
 </body>

@@ -1,67 +1,73 @@
 @use '../abstracts' as *;
 
+// Main layout
 body {
     box-sizing: border-box;
     background-color: $secondary-color;
     color: #fff;
 
+    // Hero section
     .hero {
-        height: 100vh;
+        height: auto;
         width: 100%;
-        background-image: url('../images/hero-img.png');
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
+        background-color: $background-color;
         position: relative;
         padding-top: 4.375rem;
         display: flex;
         flex-direction: column;
-        justify-content: flex-end;
+        align-items: center;
+        justify-content: center;
 
-        .hero-text {
-            padding: 0 5%;
-            margin-bottom: 3.75rem;
-            text-align: center;
-            color: $primary-color;
 
-            h1 {
-                color: $primary-color;
+
+        .hero-tagline {
+            display: none;
+        }
+
+        .hero-image {
+            margin-top: 72px;
+            width: 100%;
+            overflow: hidden;
+
+            img {
+                width: 100%;
+                object-fit: cover;
+
             }
+        }
 
-            p {
-                font-size: 1.4rem;
-                letter-spacing: 0.25rem;
-                margin-bottom: 0.625rem;
-            }
+        .hero-logo {
+            margin-top: 72px;
+        }
 
-            .logo-desktop {
-                display: none;
-            }
+        .logo-desktop {
+            display: none;
+        }
 
-            .logo-mobile {
-                display: block;
-            }
+        .logo-mobile {
+            display: block;
         }
     }
 
+    // About section
     .about {
         background-color: #F7F5EB;
-        padding: 4rem 0; // 104px to rem
+        padding: 4rem 0;
         color: $secondary-color;
 
         .heading {
             text-align: center;
-            margin-bottom: 3.75rem; // 60px to rem
+            margin-bottom: 3.75rem;
 
             h2 {
-                width: 300px; // Fixed width for mobile
-                margin: 0 auto; // Center align
+                width: 300px;
+                margin: 0 auto;
             }
         }
 
         .about-img {
             display: flex;
-            flex-direction: column; // Mobile first - stacked layout
+            flex-direction: column;
             gap: 2.25rem;
             overflow: hidden;
 
@@ -71,45 +77,34 @@ body {
             }
 
             #second-img {
-                height: 400px; // Set height for second image on mobile
+                height: 400px;
             }
         }
 
         .about-text {
             margin-top: 4.375rem;
             display: flex;
-            flex-direction: column; // Mobile first - stacked layout
+            flex-direction: column;
             align-items: normal;
             gap: 28px;
 
             h3 {
-                width: 100%; // Full width on mobile
+                width: 100%;
                 margin-bottom: 1.25rem;
             }
 
             .descriptive-p {
-                width: 100%; // Full width on mobile
-            }
-        }
-
-    }
-
-    .video-reel {
-        .heading {
-            h2 {
-                font-size: 2.5rem;
-                font-style: italic;
-                font-weight: 800;
-                line-height: 100%;
+                width: 100%;
             }
         }
     }
 
+    // Features section
     .features-section {
         position: relative;
         padding: 3rem 0;
         background-color: $secondary-color;
-        overflow: hidden; // For animations
+        overflow: hidden;
 
         .heading-container {
             padding: 0 5%;
@@ -129,17 +124,13 @@ body {
 
         .heading-top,
         .heading-bottom {
-            color: #ffffff;
+            color: #fff;
             font-size: 3rem;
-            /* Larger text even on mobile */
             font-weight: bold;
             text-transform: uppercase;
             opacity: 0;
-            /* Initially hidden for animation */
             display: inline-block;
-            /* Allow text to be aligned */
             line-height: 1.1;
-            /* Tighter line height for bigger text */
         }
 
         .feature-cards {
@@ -147,19 +138,19 @@ body {
             display: flex;
             gap: 1rem;
             padding: 0 5% 1rem;
-            overflow-x: auto; // Horizontal scroll
-            scroll-snap-type: x mandatory; // Improved scrolling
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
             scrollbar-width: none;
             -ms-overflow-style: none;
 
             &::-webkit-scrollbar {
-                display: none; // Hide scrollbar
+                display: none;
             }
 
             .feature-card {
                 scroll-snap-align: start;
                 flex: 0 0 auto;
-                width: 85%; // Width for mobile
+                width: 85%;
                 background-color: $primary-color;
                 color: $secondary-color;
                 padding: 1.5rem;
@@ -206,8 +197,9 @@ body {
         }
     }
 
+    // Artists section
     .artists-section {
-        background-color: #F7F5EB; // Cream background
+        background-color: $background-color;
         padding: 2rem 0;
 
         .heading {
@@ -231,14 +223,13 @@ body {
         .artists-container {
             display: flex;
             flex-direction: column;
-            gap: 2rem; // Space between artists
+            gap: 2rem;
         }
 
         .artist-profile {
             display: flex;
-            flex-direction: column; // Mobile first - stacked layout
+            flex-direction: column;
             gap: 2rem;
-            // border-bottom: 1px solid black;
             padding-bottom: 24px;
         }
 
@@ -250,11 +241,11 @@ body {
 
         .artist-image {
             position: relative;
-            border: 3px solid #0E76BC; // Blue border as in your design
+            border: 3px solid $primary-color;
 
             img {
                 width: 100%;
-                height: 340px; // Set height for mobile
+                height: 340px;
                 object-fit: cover;
                 display: block;
             }
@@ -281,7 +272,7 @@ body {
                 }
 
                 &.instagram {
-                    background-color: $primary-color; // Gold
+                    background-color: $primary-color;
                     color: $secondary-color;
                 }
             }
@@ -359,18 +350,18 @@ body {
                 gap: 1rem;
                 overflow-x: auto;
                 scroll-snap-type: x mandatory;
-                scrollbar-width: none; // Hide scrollbar in Firefox
-                -ms-overflow-style: none; // Hide scrollbar in IE/Edge
-                padding-bottom: 1rem; // Space for scrollbar
+                scrollbar-width: none;
+                -ms-overflow-style: none;
+                padding-bottom: 1rem;
 
                 &::-webkit-scrollbar {
-                    display: none; // Hide scrollbar in Chrome/Safari
+                    display: none;
                 }
 
                 .work-item {
                     flex: 0 0 auto;
                     width: 310px;
-                    height: 310px; // For mobile
+                    height: 310px;
                     scroll-snap-align: start;
 
                     img {
@@ -384,8 +375,10 @@ body {
         }
     }
 
+    // Booking section
+    // Booking section - updated with responsive font sizes
     .booking-section {
-        background-image: url('../images/hero-img.png'); // Adjust if a different tattoo-themed background is needed
+        background-image: url('../images/hero-img.png');
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
@@ -397,7 +390,7 @@ body {
             margin-bottom: 32px;
 
             h2 {
-                font-size: 2.5rem;
+                font-size: 2rem;
                 font-weight: bold;
                 text-transform: uppercase;
             }
@@ -418,10 +411,10 @@ body {
                 width: 100%;
                 padding: 10px 0;
                 border: none;
-                border-bottom: 1px solid #000;
+                border-bottom: 1px solid $secondary-color;
                 margin-bottom: 20px;
-                font-size: 16px;
-                color: #000;
+                font-size: 14px;
+                color: $secondary-color;
                 background-color: transparent;
                 outline: none;
 
@@ -440,11 +433,13 @@ body {
             background-color: $primary-color;
             padding: 20px;
             border-radius: 10px;
-            color: #fff;
+            color: $secondary-color;
+            margin-top: 16px;
 
             .cta-content {
                 display: flex;
                 flex-direction: column;
+                align-items: flex-start;
                 height: 100%;
             }
 
@@ -469,7 +464,7 @@ body {
                     display: inline-flex;
                     align-items: center;
                     gap: 10px;
-                    background-color: $secondary-color; // Black
+                    background-color: $background-color;
                     color: #fff;
                     padding: 10px 20px;
                     text-decoration: none;
@@ -497,24 +492,28 @@ body {
                 align-items: flex-start;
 
                 h3 {
-                    background-color: #0E76BC; // Blue
                     color: #fff;
-                    padding: 10px;
-                    font-size: 24px;
+                    font-size: 20px;
                     display: inline-block;
                     text-transform: uppercase;
                 }
 
                 p {
-                    font-size: 16px;
+                    font-size: 14px;
                     margin-top: 10px;
                 }
             }
 
             .map-container {
                 width: 100%;
-                height: 300px;
+                // height: 300px;
                 border-radius: 10px;
+            }
+
+            #map {
+                width: 100%;
+                height: 100%;
+                border-radius: 8px;
             }
 
             .map-button {
@@ -537,25 +536,60 @@ body {
         .error-message {
             margin-top: 10px;
             text-align: center;
-        }
-
-        .success-message {
-            color: green;
-        }
-
-        .error-message {
-            color: red;
+            font-size: 14px;
         }
     }
 }
 
-// Tablet styles
+// Responsive breakpoints
 @media (min-width: 769px) {
     body {
         .hero {
+            padding-left: 16px;
+            padding-right: 16px;
+
             .hero-text {
                 p {
-                    font-size: 1.6rem; // Larger for tablet
+                    font-size: 1.6rem;
+                }
+            }
+
+            .logo-desktop {
+                display: block;
+            }
+
+            .logo-mobile {
+                display: none;
+            }
+
+            .hero-image {
+                width: 100%;
+                height: 400px;
+                overflow: hidden;
+
+                img {
+                    width: 100%;
+                    object-fit: cover;
+                }
+            }
+
+            .hero-tagline {
+                color: $secondary-color;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-top: 40px;
+
+                p {
+                    font-size: 0.8rem;
+                }
+
+
+                .stroke {
+                    width: 462px;
+                    height: 2px;
+                    background-color: $primary-color;
+                    margin: 0 auto;
                 }
             }
         }
@@ -563,27 +597,19 @@ body {
         .about {
             .heading {
                 h2 {
-                    width: 100%; // Full width on tablet
+                    width: 100%;
                 }
             }
 
             .about-text {
-
-
                 h3 {
-                    width: 70%; // Adjusted for tablet
+                    width: 70%;
                 }
 
                 .descriptive-p {
-                    width: 90%; // Adjusted for tablet
+                    width: 90%;
                 }
             }
-
-            // .about-button {
-            //     .about-us-button {
-            //         width: 100%; // Full width button on mobile
-            //     }
-            // }
         }
 
         .video-reel {
@@ -602,14 +628,14 @@ body {
 
             .heading-top,
             .heading-bottom {
-                font-size: 4.5rem; // Larger for tablet
+                font-size: 4.5rem;
             }
 
             .feature-cards {
                 gap: 1.25rem;
 
                 .feature-card {
-                    width: 300px; // Fixed width for tablet
+                    width: 300px;
                     padding: 1.75rem;
 
                     .feature-text h3 {
@@ -621,7 +647,7 @@ body {
 
         .artists-section {
             .artist-profile {
-                flex-direction: column; // Still column for tablet
+                flex-direction: column;
             }
 
             .artists-info {
@@ -633,87 +659,173 @@ body {
             .artist-works {
                 .works-slider {
                     .work-item {
-                        width: 70%; // Adjusted for tablet
+                        width: 70%;
                     }
                 }
             }
-
-
         }
+
 
         .map-section {
             display: flex;
         }
 
-        // .booking-section {
+        .booking-section {
+            .heading h2 {
+                font-size: 2.5rem;
+            }
 
-        //     .form-con {
-        //         .form-con-main {
-        //             display: flex;
-        //             flex-direction: row;
-        //             gap: 1.5rem; 
-        //         }
-        //     }
+            .form {
+                padding: 30px;
 
-        // }
+                input,
+                textarea {
+                    font-size: 16px;
+                    padding: 15px 0;
+                }
+            }
 
+            .cta {
+                padding: 30px;
+                margin-top: 0px;
+
+                h3 {
+                    font-size: 20px;
+                    margin-bottom: 15px;
+                }
+
+                p {
+                    font-size: 14px;
+                }
+            }
+
+            .map-section {
+                margin-top: 60px;
+
+                .studio-info {
+                    flex-direction: column;
+                    gap: 16px;
+
+
+                    .address {
+                        margin-bottom: 0;
+                    }
+
+                    h3 {
+                        font-size: 24px;
+                    }
+
+                    p {
+                        font-size: 16px;
+                    }
+                }
+
+                .map-button {
+                    text-align: right;
+                    margin-top: 0;
+                }
+            }
+
+            .success-message,
+            .error-message {
+                font-size: 16px;
+            }
+        }
     }
 }
 
-// Desktop styles
 @media (min-width: 1025px) {
     body {
         .hero {
+            padding: 72px;
+            border-bottom: 1px solid $secondary-color;
+
             .hero-text {
                 p {
-                    font-size: 1.8rem; // Largest for desktop
+                    font-size: 1.8rem;
+                }
+            }
+
+            .hero-tagline {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-top: 40px;
+                font-size: 1rem;
+
+                p {
+                    font-size: 1rem;
                 }
 
-                .logo-desktop {
-                    display: block; // Show desktop logo
-                }
+                .stroke {
+                    width: 762px;
 
-                .logo-mobile {
-                    display: none; // Hide mobile logo
                 }
+            }
+
+            .hero-image {
+                width: 100%;
+                height: 562px;
+                overflow: hidden;
+
+                img {
+                    width: 100%;
+                    object-fit: cover;
+
+                }
+            }
+
+            .logo-desktop {
+                display: block;
+            }
+
+            .logo-mobile {
+                display: none;
             }
         }
 
         .about {
             .heading {
                 h2 {
-                    width: 100%; // Full width on tablet
+                    width: 100%;
                 }
             }
 
             .about-img {
-                flex-direction: row; // Side by side on desktop
+                flex-direction: row;
+
+                img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                }
 
                 #second-img {
-                    height: auto; // Reset height for desktop
+                    height: auto;
+
+                    img {
+                        width: 100%;
+                        height: 100%;
+                        object-fit: cover;
+                    }
+
                 }
             }
 
             .about-text {
-                flex-direction: row; // Side by side on desktop
+                flex-direction: row;
                 justify-content: space-between;
                 align-items: flex-end;
                 gap: 0;
 
                 h3 {
-                    width: 50%; // Half width on desktop
+                    width: 50%;
                 }
 
                 .descriptive-p {
-                    width: 41.625rem; // Specific width on desktop
+                    width: 41.625rem;
                 }
             }
-
-            // .about-button {
-            //     .about-us-button {
-            //         width: 100%; 
-            //     }
-            // }
         }
 
         .features-section {
@@ -729,7 +841,7 @@ body {
 
             .heading-top,
             .heading-bottom {
-                font-size: 6rem; // Largest for desktop
+                font-size: 6rem;
             }
 
             .feature-cards {
@@ -737,7 +849,7 @@ body {
                 gap: 1.5rem;
 
                 .feature-card {
-                    width: 350px; // Larger for desktop
+                    width: 350px;
                     padding: 2rem;
 
                     .feature-text {
@@ -753,23 +865,24 @@ body {
 
         .artists-section {
             .artist-profile {
-                flex-direction: row; // Side by side for desktop
+                flex-direction: row;
                 align-items: flex-start;
-                gap: 2rem; // Add gap between info and works
+                gap: 2rem;
             }
 
             .artists-info {
                 flex-direction: row;
-                flex: 1 1 50%; // Changed from 60% to 50%
+                flex: 1 1 50%;
             }
 
             .artist-image {
                 position: relative;
-                border: 3px solid #0E76BC; // Blue border as in your design
+                border: 3px solid $primary-color;
+                border-radius: 8px;
 
                 img {
                     width: 340px;
-                    height: 340px; // Set height for mobile
+                    height: 340px;
                     object-fit: cover;
                     display: block;
                 }
@@ -780,7 +893,7 @@ body {
             }
 
             .artist-works {
-                flex: 0 0 45%; // Changed from 60% to 45%
+                flex: 0 0 45%;
                 height: 100%;
 
                 .works-slider {
@@ -788,12 +901,58 @@ body {
                     height: 100%;
 
                     .work-item {
-                        width: 340px; // Fixed width for desktop
+                        width: 340px;
                         height: 340px;
+                        border-radius: 8px;
+
+                        img {
+                            width: 100%;
+                            height: 100%;
+                            display: block;
+                            object-fit: cover;
+                            border-radius: 8px;
+                        }
                     }
                 }
             }
         }
 
+        .booking-section {
+            .heading h2 {
+                font-size: 3rem;
+            }
+
+            .cta {
+                h3 {
+                    font-size: 24px;
+                    margin-bottom: 20px;
+                }
+
+                p {
+                    font-size: 16px;
+                    line-height: 1.5;
+                }
+
+                .form-submit-btn {
+                    margin-top: 20px;
+                }
+            }
+
+            .map-section {
+                .studio-info {
+                    h3 {
+                        font-size: 28px;
+                    }
+
+                    p {
+                        font-size: 18px;
+                    }
+                }
+
+                .map-container {
+                    height: 400px;
+                }
+            }
+        }
     }
 }
