@@ -29,9 +29,9 @@
         <nav class="nav-menu" :class="{ open: menuOpen }">
             <ul>
                 <li><a href="index.html" @click="closeMenu">Home</a></li>
-                <li><a href="index.html#about" @click="closeMenu">About</a></li>
-                <li><a href="index.html#services" @click="closeMenu">Services</a></li>
-                <li><a href="index.html#contact" @click="closeMenu">Contact</a></li>
+                <li><a href="gallery.html" @click="closeMenu">Gallery</a></li>
+                <li><a href="about.html" @click="closeMenu">About</a></li>
+                <li><a href="#contact" @click="closeMenu">Contact</a></li>
             </ul>
         </nav>
 
@@ -71,10 +71,6 @@
                     <div class="artist-profile-container col-span-full">
                         <div class="artist-image">
                             <img :src="artist.photo_path" :alt="artist.name">
-                            <div class="artist-tags">
-                                <span class="artist-tag resident">Resident Artist</span>
-                                <span class="artist-tag instagram">Instagram</span>
-                            </div>
                         </div>
                         <div class="artist-info">
                             <div class="bio-content">
@@ -138,28 +134,53 @@
             </section>
         </main>
 
-        <footer v-if="artist && !loading && !error" class="site-footer">
+        <footer>
             <div class="grid-con">
                 <div class="footer-content col-span-full">
                     <div class="footer-logo">
-                        <img src="images/inkspire-logo.svg" alt="Inkspire Logo">
+                        <img src="images/inkspire-logo.svg" alt="INKSPIRE">
                     </div>
-                    <div class="footer-links">
-                        <ul>
-                            <li><a href="index.html">Home</a></li>
-                            <li><a href="index.html#about">About</a></li>
-                            <li><a href="index.html#services">Services</a></li>
-                            <li><a href="index.html#contact">Contact</a></li>
-                        </ul>
+                    <div class="footer-info">
+                        <div class="contact-info">
+                            <div class="info-item">
+                                <h4>Let's talk</h4>
+                                <p>GetInkspireLondon@gmail.com</p>
+                            </div>
+                            <div class="info-item">
+                                <h4>Phone</h4>
+                                <p>+1 234 567 8910</p>
+                            </div>
+                            <div class="info-item">
+                                <h4>Work time</h4>
+                                <p>10:00 - 18:00</p>
+                            </div>
+                            <div class="info-item">
+                                <h4>Address</h4>
+                                <p>470 Richmond St, London, ON</p>
+                            </div>
+                        </div>
+                        <div class="social-links">
+                            <h4>Instagram</h4>
+                            <p>@GetInkspired_London</p>
+                        </div>
+                        <div class="footer-nav">
+                            <h4>Menu</h4>
+                            <ul>
+                                <li><a href="index.html">Home Page</a></li>
+                                <li><a href="about.html">About Us</a></li>
+                                <li><a href="gallery.html">Gallery</a></li>
+                                <li><a href="#contact">Contact Us</a></li>
+                            </ul>
+                        </div>
                     </div>
-                    <div class="footer-social">
-                        <a href="#" class="social-icon"><img src="images/instagram-icon.svg" alt="Instagram"></a>
-                        <a href="#" class="social-icon"><img src="images/facebook-icon.svg" alt="Facebook"></a>
-                        <a href="#" class="social-icon"><img src="images/twitter-icon.svg" alt="Twitter"></a>
+                    <div class="back-to-top">
+                        <a href="#" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
+                            BACK TO TOP
+                        </a>
                     </div>
                 </div>
-                <div class="footer-bottom col-span-full">
-                    <p>&copy; 2025 INKSPIRE. All rights reserved.</p>
+                <div class="copyright col-span-full">
+                    <p>© INKSPIRE {{ new Date().getFullYear() }} | All Rights Reserved</p>
                 </div>
             </div>
         </footer>

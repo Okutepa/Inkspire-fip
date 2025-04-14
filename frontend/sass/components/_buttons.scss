@@ -1,131 +1,390 @@
 @use '../abstracts' as *;
 
-/* Mobile-first: Styles for small screens (up to 768px) */
-.about-button {
-
+// Primary button style - based on the image you provided
+.inkspire-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
     width: 100%;
-    /* Full width for mobile */
+    max-width: 100%;
+    padding: 1rem 1.25rem;
+    background-color: transparent;
+    border: 2px solid $primary-color;
+    color: $primary-color;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    position: relative;
+    cursor: pointer;
 
+    // Arrow icon
+    &::after {
+        content: "↗";
+        font-size: 1.25rem;
+        margin-left: 0.5rem;
+        transition: transform 0.3s ease;
+    }
+
+    &:hover {
+        background-color: $primary-color;
+        color: $secondary-color;
+
+        &::after {
+            transform: translate(3px, -3px);
+        }
+    }
+
+    // Variant with dark background
+    &.dark {
+        background-color: $secondary-color;
+        color: $primary-color;
+
+        &:hover {
+            background-color: darken($secondary-color, 10%);
+        }
+    }
+
+    // Responsive adjustments
+    @media (min-width: 768px) {
+        max-width: 230px;
+        font-size: 0.6rem;
+
+        &::after {
+            font-size: 0.6rem;
+        }
+    }
+}
+
+// Legacy button styles - modified for consistency
+.about-button {
+    width: 100%;
+    margin-top: 1.5rem;
 
     .about-us-button {
-        display: flex;
-        cursor: pointer;
-        background: none;
-        border: none;
-        padding: 0;
-        transition: transform 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: space-between;
         width: 100%;
-        text-decoration: none;
-
-        &:hover {
-            transform: translateY(-2px);
-            /* Subtle lift effect */
-        }
-    }
-
-    .text-container {
-        background-color: #F7F5EB;
-        /* Light beige background */
-        border: 2px solid $secondary-color;
-        /* Dark border, likely black */
-        padding: 20px 24px;
-        /* Tighter padding for mobile */
-        font-size: 14px;
-        /* Smaller font for mobile */
-        font-weight: bold;
+        max-width: 100%;
+        padding: 1rem 1.25rem;
+        background-color: transparent;
+        border: 2px solid $primary-color;
+        color: $secondary-color;
+        font-size: 1rem;
+        font-weight: 600;
         text-transform: uppercase;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: $secondary-color;
-        /* Dark text color, likely black */
-        flex: 0 0 70%;
-        /* Takes up 70% of the space */
-    }
-
-    .icon-container {
-        flex: 0 0 30%;
-        /* Takes up 30% of the space */
-        height: 100%;
-        padding: 15px 0;
-        /* Tighter padding for mobile */
-        background-color: #F7F5EB;
-        border: 2px solid $secondary-color;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .icon {
-        transition: all 0.5s ease;
-    }
-
-    .about-us-button:hover .icon {
-        animation: spin 1.5s infinite ease-in-out;
-    }
-
-    @keyframes spin {
-        0% {
-            transform: rotate(0deg);
-        }
-
-        100% {
-            transform: rotate(360deg);
-        }
-    }
-}
-
-.form-submit-btn {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-
-
-    a {
-        color: $secondary-color;
-        font-size: 12px;
-        display: flex;
-        padding: 16px 16px;
-        justify-content: center;
-        align-items: center;
         text-decoration: none;
-        border: 1px solid $secondary-color;
-        border-radius: 8px;
         transition: all 0.3s ease;
+        position: relative;
+        cursor: pointer;
 
         &:hover {
-            background-color: $secondary-color;
-            color: $primary-color;
+            background-color: $primary-color;
+            color: $secondary-color;
+            transform: translateY(-2px);
         }
-    }
-
-    .btn-icon {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        background-color: $primary-color;
-        border: 1px solid $secondary-color;
-        // padding: 4px;
-        height: 100%;
-        border-radius: 8px;
-    }
-}
-
-/* Desktop: Adjust for larger screens (769px and up) */
-@media (min-width: 769px) {
-    .about-button {
-        /* Fixed width for desktop, as in your original code */
 
         .text-container {
-            padding: 32px 40px;
-            /* More spacious padding for desktop */
-            font-size: 16px;
-            /* Larger font for desktop */
+            flex: 1;
         }
 
         .icon-container {
-            padding: 22px 0;
-            /* More spacious padding for desktop */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-left: 0.5rem;
+
+            .icon img {
+                width: 20px;
+                height: 20px;
+                transition: transform 0.3s ease;
+            }
+        }
+
+        &:hover .icon img {
+            transform: rotate(45deg);
+        }
+    }
+
+    @media (min-width: 768px) {
+        max-width: 320px;
+
+        .about-us-button {
+            font-size: 1.125rem;
+
+            .icon-container .icon img {
+                width: 24px;
+                height: 24px;
+            }
+        }
+    }
+}
+
+// Portfolio CTA button
+.portfolio-cta {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+
+    .view-all-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem 1.25rem;
+        background-color: transparent;
+        border: 2px solid $primary-color;
+        color: $secondary-color;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        text-decoration: none;
+        transition: all 0.3s ease;
+
+        span {
+            margin-right: 0.75rem;
+        }
+
+        .icon-box {
+            width: 20px;
+            height: 20px;
+            background: url('../images/logo-icon.svg') no-repeat center;
+            background-size: contain;
+            transition: transform 0.3s ease;
+        }
+
+        &:hover {
+            background-color: $primary-color;
+            color: $secondary-color;
+
+            .icon-box {
+                transform: rotate(45deg);
+            }
+        }
+    }
+}
+
+// Artist bio button
+.artist-bio-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    background-color: transparent;
+    border: 2px solid $primary-color;
+    color: $secondary-color;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: bold;
+    transition: all 0.3s ease;
+
+    svg {
+        transition: transform 0.3s ease;
+    }
+
+    &:hover {
+        background-color: $primary-color;
+        color: $secondary-color;
+
+        svg {
+            transform: translate(3px, -3px);
+
+            path {
+                stroke: $secondary-color;
+            }
+        }
+    }
+}
+
+// Form submit button
+.form-submit-btn {
+    margin-top: 1.5rem;
+
+    .booking-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        max-width: 100%;
+        padding: 0.75rem 1.25rem;
+        background-color: $secondary-color;
+        border: 2px solid $primary-color;
+        color: #fff;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        text-decoration: none;
+        transition: all 0.3s ease;
+
+        img {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.3s ease;
+        }
+
+        &:hover {
+            background-color: $primary-color;
+            color: $secondary-color;
+
+            img {
+                transform: rotate(45deg);
+            }
+        }
+    }
+
+    @media (min-width: 768px) {
+        .booking-btn {
+            max-width: 320px;
+            font-size: 1rem;
+
+            img {
+                width: 24px;
+                height: 24px;
+            }
+        }
+    }
+}
+
+// Map button
+.map-button {
+    margin-top: 1rem;
+
+    .show-map-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.75rem 1.25rem;
+        background-color: $primary-color;
+        border: 2px solid $primary-color;
+        color: $primary-color;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        text-decoration: none;
+        transition: all 0.3s ease;
+
+        &:hover {
+            background-color: transparent;
+            color: $primary-color;
+        }
+    }
+}
+
+// Gallery load more button
+.gallery-load-more {
+    text-align: center;
+    margin-top: 2.5rem;
+
+    .load-more-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding: 0.75rem 1.25rem;
+        background-color: transparent;
+        border: 2px solid $primary-color;
+        color: $secondary-color;
+        font-size: 1rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all 0.3s ease;
+
+        .icon-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 20px;
+            height: 20px;
+
+            img {
+                width: 100%;
+                height: 100%;
+                transition: transform 0.3s ease;
+            }
+        }
+
+        &:hover {
+            background-color: $primary-color;
+            color: $secondary-color;
+            transform: translateY(-2px);
+
+            .icon-box img {
+                transform: rotate(45deg);
+            }
+        }
+
+        &:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+
+            .icon-box img {
+                transform: none;
+            }
+        }
+    }
+
+    .loading-spinner-small {
+        width: 18px;
+        height: 18px;
+        border: 2px solid rgba($secondary-color, 0.3);
+        border-radius: 50%;
+        border-top-color: $secondary-color;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    @media (min-width: 768px) {
+        .load-more-btn {
+            padding: 0.9rem 2rem;
+            font-size: 1.1rem;
+
+            .icon-box {
+                width: 24px;
+                height: 24px;
+            }
+        }
+    }
+}
+
+// Back to top button
+.back-to-top {
+    margin-top: 1.5rem;
+
+    a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem 1rem;
+        background-color: $primary-color;
+        color: $secondary-color;
+        font-size: 0.8rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        text-decoration: none;
+        transition: all 0.3s ease;
+
+        &::after {
+            content: "↑";
+            margin-left: 0.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        &:hover {
+            background-color: transparent;
+            border: 1px solid $primary-color;
+
+            &::after {
+                transform: translateY(-3px);
+            }
         }
     }
 }

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Inkspire | Gallery</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <link href="css/grid.css" rel="stylesheet">
+    <link href="css/main.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+
+<body>
+    <div id="app">
+
+        <header>
+            <div class="header-container">
+                <div class="logo">
+                    <a href="index.html"><img src="images/inkspire-logo.svg" alt="Logo"></a>
+                </div>
+                <div class="menu-btn" :class="{ open: menuOpen }" @click="toggleMenu">
+                    <div class="menu-btn__burger"></div>
+                </div>
+            </div>
+        </header>
+
+
+        <nav class="nav-menu" :class="{ open: menuOpen }">
+            <ul>
+                <li><a href="index.html" @click="closeMenu">Home</a></li>
+                <li><a href="gallery.html" @click="closeMenu">Gallery</a></li>
+                <li><a href="about.html" @click="closeMenu">About</a></li>
+                <li><a href="#contact" @click="closeMenu">Contact</a></li>
+            </ul>
+        </nav>
+
+
+        <section class="gallery-section">
+            <div class="grid-con">
+                <div class="heading col-span-full">
+                    <h2>OUR MASTERPIECES</h2>
+                </div>
+
+
+                <div class="gallery-filters col-span-full">
+                    <ul>
+                        <li :class="{ active: activeFilter === 'all' }">
+                            <a href="#" @click.prevent="filterGallery('all')">All</a>
+                        </li>
+                        <li v-for="style in styles" :key="style" :class="{ active: activeFilter === style }">
+                            <a href="#" @click.prevent="filterGallery(style)">{{ style }}</a>
+                        </li>
+
+                        <li v-if="styles.length === 0" :class="{ active: activeFilter === 'minimal' }">
+                            <a href="#" @click.prevent="filterGallery('minimal')">Minimal</a>
+                        </li>
+                        <li v-if="styles.length === 0" :class="{ active: activeFilter === 'fineline' }">
+                            <a href="#" @click.prevent="filterGallery('fineline')">Fine Line</a>
+                        </li>
+                        <li v-if="styles.length === 0" :class="{ active: activeFilter === 'geometric' }">
+                            <a href="#" @click.prevent="filterGallery('geometric')">Geometric</a>
+                        </li>
+                    </ul>
+                </div>
+
+
+                <div v-if="loading.tattoos" class="col-span-full loading-container">
+                    <div class="loading-spinner"></div>
+                    <p>Loading gallery...</p>
+                </div>
+
+
+                <div v-if="error.tattoos" class="col-span-full error-message">
+                    <p>{{ error.tattoos }}</p>
+                </div>
+
+
+                <div v-if="!loading.tattoos && !error.tattoos" class="col-span-full">
+                    <div v-if="filteredTattoos.length === 0" class="no-results">
+                        <p>No tattoos found for the selected filter. Try another category.</p>
+                    </div>
+
+                    <div v-else class="gallery-grid">
+                        <div v-for="(tattoo, index) in displayedTattoos" :key="tattoo.tattoo_id" class="gallery-item">
+                            <div class="gallery-item-inner">
+                                <img :src="tattoo.file_path" :alt="tattoo.title">
+                                <div class="gallery-item-overlay">
+                                    <h3>{{ tattoo.title }}</h3>
+                                    <p v-if="tattoo.style">Style: {{ tattoo.style }}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="gallery-load-more">
+                        <button class="inkspire-btn" @click="loadMoreTattoos" :disabled="loading.more">
+                            <span v-if="!loading.more">VIEW MORE</span>
+                            <span v-else>LOADING...</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <section class="booking-section" id="contact">
+            <div class="grid-con">
+                <div class="heading col-span-full">
+                    <h2>GET IN TOUCH TODAY</h2>
+                </div>
+
+
+                <div class="form col-span-full m-col-span-6">
+                    <form>
+                        <input type="text" v-model="contactForm.name" placeholder="Full Name*" required>
+                        <input type="email" v-model="contactForm.email" placeholder="E-mail*" required>
+                        <input type="tel" v-model="contactForm.phone" placeholder="Phone number*" required>
+                        <textarea v-model="contactForm.message" placeholder="About Project (optional)"></textarea>
+                    </form>
+                </div>
+
+                <div class="cta col-span-full m-col-span-6">
+                    <div class="cta-content">
+                        <h3>A TEAM OF OUR MASTERS WILL HELP YOU CREATE A FREE SKETCH</h3>
+                        <p>We will select a suitable artist who will be ready to realize even the most daring ideas of
+                            your tattoos.</p>
+                        <div class="form-submit-btn">
+                            <a href="#" class="inkspire-btn dark" @click.prevent="submitContactForm">
+                                {{ formSubmitting ? 'Sending...' : 'BOOK A CONSULTATION' }}
+                            </a>
+                        </div>
+                        <div v-if="formSuccess" class="success-message">
+                            <p>Thank you! Your message has been sent successfully. We'll contact you shortly.</p>
+                        </div>
+                        <div v-if="formError" class="error-message">
+                            <p>{{ formError }}</p>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="map-section col-span-full">
+                    <div class="studio-info">
+                        <div class="address">
+                            <h3>INKSPIRE STUDIO</h3>
+                            <p>470 Richmond St, London Ontario, Canada, N6A 5J2</p>
+                        </div>
+                        <div class="map-button">
+                            <a href="#" class="inkspire-btn" @click.prevent="toggleMap">
+                                {{ showMap ? 'Hide Map' : 'Show in Map' }}
+                            </a>
+                        </div>
+                    </div>
+                    <div class="map-container" v-show="showMap">
+                        <div id="map" style="height: 300px; width: 100%;"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <footer>
+            <div class="grid-con">
+                <div class="footer-content col-span-full">
+                    <div class="footer-logo">
+                        <img src="images/inkspire-logo.svg" alt="INKSPIRE">
+                    </div>
+                    <div class="footer-info">
+                        <div class="contact-info">
+                            <div class="info-item">
+                                <h4>Let's talk</h4>
+                                <p>GetInkspireLondon@gmail.com</p>
+                            </div>
+                            <div class="info-item">
+                                <h4>Phone</h4>
+                                <p>+1 234 567 8910</p>
+                            </div>
+                            <div class="info-item">
+                                <h4>Work time</h4>
+                                <p>10:00 - 18:00</p>
+                            </div>
+                            <div class="info-item">
+                                <h4>Address</h4>
+                                <p>470 Richmond St, London, ON</p>
+                            </div>
+                        </div>
+                        <div class="social-links">
+                            <h4>Instagram</h4>
+                            <p>@GetInkspired_London</p>
+                        </div>
+                        <div class="footer-nav">
+                            <h4>Menu</h4>
+                            <ul>
+                                <li><a href="index.html">Home Page</a></li>
+                                <li><a href="about.html">About Us</a></li>
+                                <li><a href="gallery.html">Gallery</a></li>
+                                <li><a href="#contact">Contact Us</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="back-to-top">
+                        <a href="#" onclick="window.scrollTo({top: 0, behavior: 'smooth'}); return false;">
+                            BACK TO TOP
+                        </a>
+                    </div>
+                </div>
+                <div class="copyright col-span-full">
+                    <p>© INKSPIRE {{ new Date().getFullYear() }} | All Rights Reserved</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="js/pages/gallery.js"></script>
+</body>
+
+</html>
